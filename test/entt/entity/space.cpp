@@ -17,24 +17,24 @@ TEST(Space, Accessors) {
 	using space_a_t = entt::Space<uint32_t, accessor_a_t::hash>;
 	using space_b_t = entt::Space<uint32_t, accessor_b_t::hash>;
 
-	space_a_t space_a(accessor_a_t{ entt::HashedString{ "bar" } });
-	space_b_t space_b(accessor_b_t{ entt::HashedString{ "bar" } });
+	space_a_t space_a(accessor_a_t("bar"));
+	space_b_t space_b(accessor_b_t("bar"));
 
 	auto e1 = space_a.create<int, char, float>();
 	auto e2 = space_b.create<float>();
 
-	//space_a.assign<accessor_b_t>(e1, space_b.accessor());
-	//space_b.assign<accessor_a_t>(e2, space_a.accessor());
+	space_a.assign<accessor_b_t>(e1, space_b.accessor());
+	space_b.assign<accessor_a_t>(e2, space_a.accessor());
 
-	//ASSERT_EQ(space_a.get<accessor_b_t>(e1), space_b.accessor());
-	//ASSERT_EQ(space_b.get<accessor_a_t>(e2), space_a.accessor());
+	ASSERT_EQ(space_a.get<accessor_b_t>(e1), space_b.accessor());
+	ASSERT_EQ(space_b.get<accessor_a_t>(e2), space_a.accessor());
 
 	ASSERT_EQ(space_a.size(), space_a_t::size_type{ 1 });
 	ASSERT_EQ(space_b.size(), space_b_t::size_type{ 1 });
 }
 
 TEST(Space, Functionalities) {
-	Space space(SpaceAccessor{entt::HashedString{"bar"}});
+	Space space(SpaceAccessor("bar"));
 
 	ASSERT_EQ(space.size(), Space::size_type{ 0 });
 	ASSERT_NO_THROW(space.reserve(42));
@@ -163,7 +163,7 @@ TEST(Space, Functionalities) {
 }
 
 TEST(Space, CreateDestroyCornerCase) {
-	Space space(SpaceAccessor{entt::HashedString{"bar"}});
+	Space space(SpaceAccessor("bar"));
 
 	auto e0 = space.create();
 	auto e1 = space.create();
@@ -178,7 +178,7 @@ TEST(Space, CreateDestroyCornerCase) {
 }
 
 TEST(Space, VersionOverflow) {
-	Space space(SpaceAccessor{entt::HashedString{"bar"}});
+	Space space(SpaceAccessor("bar"));
 
 	auto entity = space.create();
 	space.destroy(entity);
@@ -194,7 +194,7 @@ TEST(Space, VersionOverflow) {
 }
 
 TEST(Space, Each) {
-	Space space(SpaceAccessor{entt::HashedString{"bar"}});
+	Space space(SpaceAccessor("bar"));
 	Space::size_type tot;
 	Space::size_type match;
 
@@ -247,7 +247,7 @@ TEST(Space, Each) {
 }
 
 TEST(Space, Orphans) {
-	Space space(SpaceAccessor{entt::HashedString{"bar"}});
+	Space space(SpaceAccessor("bar"));
 	Space::size_type tot{};
 
 	space.create<int>();
@@ -271,7 +271,7 @@ TEST(Space, Orphans) {
 }
 
 TEST(Space, Types) {
-	Space space(SpaceAccessor{entt::HashedString{"bar"}});
+	Space space(SpaceAccessor("bar"));
 
 	ASSERT_EQ(space.tag<int>(), space.tag<int>());
 	ASSERT_EQ(space.component<int>(), space.component<int>());
@@ -281,7 +281,7 @@ TEST(Space, Types) {
 }
 
 TEST(Space, CreateDestroyEntities) {
-	Space space(SpaceAccessor{entt::HashedString{"bar"}});
+	Space space(SpaceAccessor("bar"));
 	Space::entity_type pre{}, post{};
 
 	for (int i = 0; i < 10; ++i) {
@@ -310,7 +310,7 @@ TEST(Space, CreateDestroyEntities) {
 }
 
 TEST(Space, AttachRemoveTags) {
-	Space space(SpaceAccessor{entt::HashedString{"bar"}});
+	Space space(SpaceAccessor("bar"));
 	const auto& cspace = space;
 
 	ASSERT_FALSE(space.has<int>());
@@ -334,7 +334,7 @@ TEST(Space, AttachRemoveTags) {
 }
 
 TEST(Space, StandardViews) {
-	Space space(SpaceAccessor{entt::HashedString{"bar"}});
+	Space space(SpaceAccessor("bar"));
 	auto mview = space.view<int, char>();
 	auto iview = space.view<int>();
 	auto cview = space.view<char>();
@@ -353,7 +353,7 @@ TEST(Space, StandardViews) {
 }
 
 TEST(Space, PersistentViews) {
-	Space space(SpaceAccessor{entt::HashedString{"bar"}});
+	Space space(SpaceAccessor("bar"));
 	auto view = space.persistent<int, char>();
 
 	ASSERT_TRUE((space.contains<int, char>()));
@@ -378,7 +378,7 @@ TEST(Space, PersistentViews) {
 }
 
 TEST(Space, CleanStandardViewsAfterReset) {
-	Space space(SpaceAccessor{entt::HashedString{"bar"}});
+	Space space(SpaceAccessor("bar"));
 	auto view = space.view<int>();
 	space.create(0);
 
@@ -390,7 +390,7 @@ TEST(Space, CleanStandardViewsAfterReset) {
 }
 
 TEST(Space, CleanPersistentViewsAfterReset) {
-	Space space(SpaceAccessor{entt::HashedString{"bar"}});
+	Space space(SpaceAccessor("bar"));
 	auto view = space.persistent<int, char>();
 	space.create(0, 'c');
 
@@ -402,7 +402,7 @@ TEST(Space, CleanPersistentViewsAfterReset) {
 }
 
 TEST(Space, CleanTagsAfterReset) {
-	Space space(SpaceAccessor{entt::HashedString{"bar"}});
+	Space space(SpaceAccessor("bar"));
 	auto entity = space.create();
 	space.attach<int>(entity);
 
@@ -414,7 +414,7 @@ TEST(Space, CleanTagsAfterReset) {
 }
 
 TEST(Space, SortSingle) {
-	Space space(SpaceAccessor{entt::HashedString{"bar"}});
+	Space space(SpaceAccessor("bar"));
 
 	int val = 0;
 
@@ -434,7 +434,7 @@ TEST(Space, SortSingle) {
 }
 
 TEST(Space, SortMulti) {
-	Space space(SpaceAccessor{entt::HashedString{"bar"}});
+	Space space(SpaceAccessor("bar"));
 
 	unsigned int uval = 0u;
 	int ival = 0;
@@ -465,7 +465,7 @@ TEST(Space, SortMulti) {
 
 TEST(Space, ComponentsWithTypesFromStandardTemplateLibrary) {
 	// see #37 - the test shouldn't crash, that's all
-	Space space(SpaceAccessor{entt::HashedString{"bar"}});
+	Space space(SpaceAccessor("bar"));
 	auto entity = space.create();
 	space.assign<std::unordered_set<int>>(entity).insert(42);
 	space.destroy(entity);
@@ -473,7 +473,7 @@ TEST(Space, ComponentsWithTypesFromStandardTemplateLibrary) {
 
 TEST(Space, ConstructWithComponents) {
 	// it should compile, that's all
-	Space space(SpaceAccessor{entt::HashedString{"bar"}});
+	Space space(SpaceAccessor("bar"));
 	const auto value = 0;
 	space.create(value);
 }

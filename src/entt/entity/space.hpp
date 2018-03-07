@@ -29,7 +29,7 @@ namespace entt {
 	public:
 		SpaceAccessor() = default;
 		SpaceAccessor(const char* string):
-			key(string)
+			key(HashedString{ string })
 		{ }
 
 		SpaceAccessor(const SpaceAccessor&) = default;
@@ -37,8 +37,17 @@ namespace entt {
 
 		SpaceAccessor& operator = (const SpaceAccessor&) = default;
 		SpaceAccessor& operator = (SpaceAccessor&&) = default;
+
+		bool operator == (const SpaceAccessor& other) const noexcept
+		{
+			return key == other.key;
+		}
+		bool operator != (const SpaceAccessor& other) const noexcept
+		{
+			return key != other.key;
+		}
 	public:
-		HashedString key{""};
+		HashedString::hash_type key = 0;
 	};
 
 	template<typename Entity, HashedString::hash_type Hash>
