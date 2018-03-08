@@ -15,10 +15,10 @@ namespace entt {
 
 
 /**
- * @brief Forward declaration of the container class.
+ * @brief Forward declaration of the registry class.
  */
-template<typename, typename, typename, typename>
-class Container;
+template<typename, std::uint64_t>
+class Registry;
 
 
 /**
@@ -42,30 +42,30 @@ class Container;
  * invalidates all the iterators and using them results in undefined behavior.
  *
  * @note
- * Views share references to the underlying data structures with the Container
+ * Views share references to the underlying data structures with the Registry
  * that generated them. Therefore any change to the entities and to the
- * components made by means of the container are immediately reflected by
+ * components made by means of the registry are immediately reflected by
  * views.<br/>
  * Moreover, sorting a persistent view affects all the other views of the same
  * type (it means that users don't have to call `sort` on each view to sort all
  * of them because they share the set of entities).
  *
  * @warning
- * Lifetime of a view must overcome the one of the container that generated it.
+ * Lifetime of a view must overcome the one of the registry that generated it.
  * In any other case, attempting to use a view results in undefined behavior.
  *
  * @sa View
- * @sa View<Entity, TagFamily, ComponentFamily, ViewFamily,  Component>
+ * @sa View<Entity, Seed, Component>
  *
  * @tparam Entity A valid entity type (see entt_traits for more details).
  * @tparam Component Types of components iterated by the view.
  */
-template<typename Entity, typename TagFamily, typename ComponentFamily, typename ViewFamily, typename... Component>
+template<typename Entity, std::uint64_t Seed, typename... Component>
 class PersistentView final {
     static_assert(sizeof...(Component) > 1, "!");
 
-    /*! @brief A container is allowed to create views. */
-    friend class Container<Entity, TagFamily, ComponentFamily, ViewFamily>;
+    /*! @brief A registry is allowed to create views. */
+    friend class Registry<Entity, Seed>;
 
     template<typename Comp>
     using pool_type = SparseSet<Entity, Comp>;
@@ -97,7 +97,7 @@ public:
      * @brief Direct access to the list of entities.
      *
      * The returned pointer is such that range `[data(), data() + size()]` is
-     * always a valid range, even if the container is empty.
+     * always a valid range, even if the registry is empty.
      *
      * @note
      * There are no guarantees on the order of the entities. Use `begin` and
@@ -149,7 +149,7 @@ public:
     /**
      * @brief Returns the component assigned to the given entity.
      *
-     * Prefer this function instead of `Container::get` during iterations. It has
+     * Prefer this function instead of `Registry::get` during iterations. It has
      * far better performance than its companion function.
      *
      * @warning
@@ -171,7 +171,7 @@ public:
     /**
      * @brief Returns the component assigned to the given entity.
      *
-     * Prefer this function instead of `Container::get` during iterations.
+     * Prefer this function instead of `Registry::get` during iterations.
      * It has far better performance than its companion function.
      *
      * @warning
@@ -193,7 +193,7 @@ public:
     /**
      * @brief Returns the components assigned to the given entity.
      *
-     * Prefer this function instead of `Container::get` during iterations. It has
+     * Prefer this function instead of `Registry::get` during iterations. It has
      * far better performance than its companion function.
      *
      * @warning
@@ -216,7 +216,7 @@ public:
     /**
      * @brief Returns the components assigned to the given entity.
      *
-     * Prefer this function instead of `Container::get` during iterations. It has
+     * Prefer this function instead of `Registry::get` during iterations. It has
      * far better performance than its companion function.
      *
      * @warning
@@ -283,7 +283,7 @@ public:
     /**
      * @brief Sort the shared pool of entities according to the given component.
      *
-     * Persistent views of the same type share with the Container a pool of
+     * Persistent views of the same type share with the Registry a pool of
      * entities with its own order that doesn't depend on the order of any pool
      * of components. Users can order the underlying data structure so that it
      * respects the order of the pool of the given component.
@@ -331,26 +331,26 @@ private:
  * invalidates all the iterators and using them results in undefined behavior.
  *
  * @note
- * Views share references to the underlying data structures with the Container
+ * Views share references to the underlying data structures with the Registry
  * that generated them. Therefore any change to the entities and to the
- * components made by means of the container are immediately reflected by views.
+ * components made by means of the registry are immediately reflected by views.
  *
  * @warning
- * Lifetime of a view must overcome the one of the container that generated it.
+ * Lifetime of a view must overcome the one of the registry that generated it.
  * In any other case, attempting to use a view results in undefined behavior.
  *
- * @sa View<Entity, TagFamily, ComponentFamily, ViewFamily,  Component>
+ * @sa View<Entity, Seed, Component>
  * @sa PersistentView
  *
  * @tparam Entity A valid entity type (see entt_traits for more details).
  * @tparam Component Types of components iterated by the view.
  */
-template<typename Entity, typename TagFamily, typename ComponentFamily, typename ViewFamily, typename... Component>
+template<typename Entity, std::uint64_t Seed, typename... Component>
 class View final {
     static_assert(sizeof...(Component) > 1, "!");
 
-    /*! @brief A container is allowed to create views. */
-    friend class Container<Entity, TagFamily, ComponentFamily, ViewFamily>;
+    /*! @brief A registry is allowed to create views. */
+    friend class Registry<Entity, Seed>;
 
     template<typename Comp>
     using pool_type = SparseSet<Entity, Comp>;
@@ -492,7 +492,7 @@ public:
     /**
      * @brief Returns the component assigned to the given entity.
      *
-     * Prefer this function instead of `Container::get` during iterations.
+     * Prefer this function instead of `Registry::get` during iterations.
      * It has far better performance than its companion function.
      *
      * @warning
@@ -514,7 +514,7 @@ public:
     /**
      * @brief Returns the component assigned to the given entity.
      *
-     * Prefer this function instead of `Container::get` during iterations. It has
+     * Prefer this function instead of `Registry::get` during iterations. It has
      * far better performance than its companion function.
      *
      * @warning
@@ -536,7 +536,7 @@ public:
     /**
      * @brief Returns the components assigned to the given entity.
      *
-     * Prefer this function instead of `Container::get` during iterations. It has
+     * Prefer this function instead of `Registry::get` during iterations. It has
      * far better performance than its companion function.
      *
      * @warning
@@ -559,7 +559,7 @@ public:
     /**
      * @brief Returns the components assigned to the given entity.
      *
-     * Prefer this function instead of `Container::get` during iterations. It has
+     * Prefer this function instead of `Registry::get` during iterations. It has
      * far better performance than its companion function.
      *
      * @warning
@@ -682,12 +682,12 @@ private:
  * invalidates all the iterators and using them results in undefined behavior.
  *
  * @note
- * Views share a reference to the underlying data structure with the Container
+ * Views share a reference to the underlying data structure with the Registry
  * that generated them. Therefore any change to the entities and to the
- * components made by means of the container are immediately reflected by views.
+ * components made by means of the registry are immediately reflected by views.
  *
  * @warning
- * Lifetime of a view must overcome the one of the container that generated it.
+ * Lifetime of a view must overcome the one of the registry that generated it.
  * In any other case, attempting to use a view results in undefined behavior.
  *
  * @sa View
@@ -696,10 +696,10 @@ private:
  * @tparam Entity A valid entity type (see entt_traits for more details).
  * @tparam Component Type of the component iterated by the view.
  */
-template<typename Entity, typename TagFamily, typename ComponentFamily, typename ViewFamily, typename Component>
-class View<Entity, TagFamily, ComponentFamily, ViewFamily,  Component> final {
-    /*! @brief A container is allowed to create views. */
-    friend class Container<Entity, TagFamily, ComponentFamily, ViewFamily>;
+template<typename Entity, std::uint64_t Seed, typename Component>
+class View<Entity, Seed, Component> final {
+    /*! @brief A registry is allowed to create views. */
+    friend class Registry<Entity, Seed>;
 
     using pool_type = SparseSet<Entity, Component>;
 
@@ -729,7 +729,7 @@ public:
      * @brief Direct access to the list of components.
      *
      * The returned pointer is such that range `[raw(), raw() + size()]` is
-     * always a valid range, even if the container is empty.
+     * always a valid range, even if the registry is empty.
      *
      * @note
      * There are no guarantees on the order of the components. Use `begin` and
@@ -745,7 +745,7 @@ public:
      * @brief Direct access to the list of components.
      *
      * The returned pointer is such that range `[raw(), raw() + size()]` is
-     * always a valid range, even if the container is empty.
+     * always a valid range, even if the registry is empty.
      *
      * @note
      * There are no guarantees on the order of the components. Use `begin` and
@@ -761,7 +761,7 @@ public:
      * @brief Direct access to the list of entities.
      *
      * The returned pointer is such that range `[data(), data() + size()]` is
-     * always a valid range, even if the container is empty.
+     * always a valid range, even if the registry is empty.
      *
      * @note
      * There are no guarantees on the order of the entities. Use `begin` and
@@ -813,7 +813,7 @@ public:
     /**
      * @brief Returns the component assigned to the given entity.
      *
-     * Prefer this function instead of `Container::get` during iterations. It has
+     * Prefer this function instead of `Registry::get` during iterations. It has
      * far better performance than its companion function.
      *
      * @warning
@@ -832,7 +832,7 @@ public:
     /**
      * @brief Returns the component assigned to the given entity.
      *
-     * Prefer this function instead of `Container::get` during iterations. It has
+     * Prefer this function instead of `Registry::get` during iterations. It has
      * far better performance than its companion function.
      *
      * @warning

@@ -1,29 +1,19 @@
 #ifndef ENTT_ENTITY_SPACE_HPP
 #define ENTT_ENTITY_SPACE_HPP
 
-#include "container.hpp"
+#include "registry.hpp"
 #include "../core/hashed_string.hpp"
 
 
 namespace entt {
 
+
 	template<typename Entity, HashedString::hash_type Hash> class Space;
 	template<typename Entity, HashedString::hash_type Hash> class SpaceAccessor
 	{
+		static_assert(Hash > 1, "!");
 	private:
 		friend class Space<Entity, Hash>;
-	private:
-		struct InternalTagFamily;
-		struct InternalComponentFamily;
-		struct InternalViewFamily;
-
-		using container_type = Container
-		<
-			Entity,
-			InternalTagFamily,
-			InternalComponentFamily,
-			InternalViewFamily
-		>;
 	public:
 		static constexpr HashedString::hash_type hash = Hash;
 	public:
@@ -51,7 +41,7 @@ namespace entt {
 	};
 
 	template<typename Entity, HashedString::hash_type Hash>
-	class Space : public SpaceAccessor<Entity, Hash>::container_type
+	class Space : public Registry<Entity, Hash>
 	{
 	public:
 		using accessor_type = SpaceAccessor<Entity, Hash>;

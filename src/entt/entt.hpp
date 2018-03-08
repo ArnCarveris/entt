@@ -3,7 +3,6 @@
 #include "core/ident.hpp"
 #include "entity/actor.hpp"
 #include "entity/entt_traits.hpp"
-#include "entity/container.hpp"
 #include "entity/space.hpp"
 #include "entity/registry.hpp"
 #include "entity/sparse_set.hpp"
