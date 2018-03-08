@@ -18,6 +18,16 @@
 namespace entt {
 
 
+/**
+* @brief Fast and reliable entity-component system.
+*
+* The registry is the core class of the entity-component framework.<br/>
+* It stores entities and arranges pools of components on a per request basis.
+* By means of a registry, users can manage entities and components and thus
+* create views to iterate them.
+*
+* @tparam Entity A valid entity type (see entt_traits for more details).
+*/
 template<typename Entity, std::uint64_t Seed = 0L>
 class Registry {
 	using tag_family = Family<Seed, Entity, struct InternalRegistryTagFamily>;
