@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 #include <entt/core/family.hpp>
 
-using my_family = entt::Family<struct MyFamily>;
-using your_family = entt::Family<struct YourFamily>;
+using my_family = entt::Family<0L, struct MyFamily>;
+using your_family = entt::Family<0L, struct YourFamily>;
 
 TEST(Family, Functionalities) {
     auto myFamilyType = my_family::type<struct MyFamilyType>();

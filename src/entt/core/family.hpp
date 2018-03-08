@@ -4,6 +4,7 @@
 
 #include<type_traits>
 #include<cstddef>
+#include<cstdint>
 #include<atomic>
 
 
@@ -17,7 +18,7 @@ namespace entt {
  * at runtime. Use different specializations to create separate sets of
  * identifiers.
  */
-template<typename...>
+template<std::uint64_t Seed, typename...>
 class Family {
     static std::atomic<std::size_t> identifier;
 
@@ -26,7 +27,8 @@ class Family {
         static const std::size_t value = identifier.fetch_add(1);
         return value;
     }
-
+public:
+	static constexpr std::uint64_t seed = Seed;
 public:
     /*! @brief Unsigned integer type. */
     using family_type = std::size_t;
@@ -42,8 +44,8 @@ public:
 };
 
 
-template<typename... Types>
-std::atomic<std::size_t> Family<Types...>::identifier{};
+template<std::uint64_t Seed, typename... Types>
+std::atomic<std::size_t> Family<Seed, Types...>::identifier{};
 
 
 }
