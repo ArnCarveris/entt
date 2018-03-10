@@ -55,7 +55,7 @@ add_executable(
     $<TARGET_OBJECTS:odr>
     entt/entity/actor.cpp
     entt/entity/registry.cpp
-    entt/entity/space.cpp
+    entt/entity/scene.cpp
     entt/entity/sparse_set.cpp
     entt/entity/view.cpp
 )
