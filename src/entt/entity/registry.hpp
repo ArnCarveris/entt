@@ -195,6 +195,33 @@ public:
 		group_id = id;
 		return group_id > 0;
 	}
+	
+	bool regroup(group_type id, entity_type first_entity, entity_type last_entity)
+	{
+		if (id == 0)
+		{
+			return false;
+		}
+		
+        	const auto first_pos = first_entity & traits_type::entity_mask;
+        	const auto last_pos = last_entity & traits_type::entity_mask;
+	
+		if (first_pos >= entities.size() || last_pos >= entities.size())
+		{
+			return false;
+		}
+	
+		bool ret = false;
+		
+		for (auto& pool : pools) {
+			if (pool) {
+				ret |= pool->regroup(id, first_entity, last_entity);
+			}
+		}
+		
+		return ret;
+	}
+	
 	bool ungroup() noexcept {
 		bool ret = false;
 
