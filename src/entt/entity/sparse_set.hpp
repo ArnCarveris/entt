@@ -153,6 +153,17 @@ public:
 
 		return true;
 	}
+	
+	bool regroup(group_type id, entity_type first_entity, entity_type last_entity) noexcept {
+		if (id == 0 || !has(first_entity) || !has(last_entity))
+		{
+			return false;
+		}
+		
+		group_ranges[id] = std::make_pair(get(first_entity), get(last_entity) + 1);
+		
+		return true;
+	}
 
 	bool ungroup(group_type id) noexcept
 	{
