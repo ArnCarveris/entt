@@ -109,7 +109,11 @@ class Registry {
 
     template<typename Component>
     Pool<Component> & pool() noexcept {
-        return const_cast<Pool<Component> &>(const_cast<const Registry *>(this)->pool<Component>());
+		auto& ref = const_cast<Pool<Component> &>(const_cast<const Registry *>(this)->pool<Component>());
+
+		ref.grouping(group_id);
+
+        return ref;
     }
 
     template<typename Component>
@@ -136,9 +140,14 @@ class Registry {
             handlers.resize(vtype + 1);
         }
 
-        if(!handlers[vtype]) {
+		if (handlers[vtype]) {
+			handlers[vtype]->grouping(group_id);
+		}
+		else {
             using accumulator_type = int[];
             auto set = std::make_unique<SparseSet<Entity>>();
+
+			set->grouping(group_id);
 
             for(auto entity: view<Component...>()) {
                 set->construct(entity);
@@ -167,6 +176,8 @@ public:
     /*! @brief Unsigned integer type. */
     using component_type = typename component_family::family_type;
 
+	using group_type = typename SparseSet<Entity>::group_type;
+
     /*! @brief Default constructor. */
     Registry() = default;
 
@@ -179,6 +190,89 @@ public:
     Registry & operator=(const Registry &) = delete;
     /*! @brief Default move assignment operator. @return This registry. */
     Registry & operator=(Registry &&) = default;
+
+	bool grouping(group_type id = 0) noexcept {
+		group_id = id;
+		return group_id > 0;
+	}
+	bool ungroup() noexcept {
+		bool ret = false;
+
+		for (auto& pool : pools) {
+			if (pool) {
+				ret |= pool->ungroup();
+			}
+		}
+
+		group_id = 0;
+
+		return ret;
+	}
+	bool ungroup(group_type id) noexcept {
+		bool ret = false;
+
+		for (auto& pool : pools) {
+			if (pool) {
+				ret |= pool->ungroup(id);
+			}
+		}
+
+		if (group_id == id) {
+			group_id = 0;
+		}
+
+		return ret;
+	}
+
+	size_type grouped(group_type id) const noexcept {
+		size_type ret = 0;
+
+		for (auto& pool : pools) {
+			if (pool) {
+				ret += pool->grouped(id);
+			}
+		}
+
+		return ret;
+	}
+
+	size_type groups() const noexcept {
+		size_type ret = 0;
+
+		for (auto& pool : pools) {
+			if (pool){
+				ret += pool->groups();
+			}
+		}
+
+		return ret;
+	}
+
+
+	template<typename Component>
+	bool ungroup(group_type id) noexcept {
+		if (group_id == id) {
+			group_id = id;
+		}
+
+		return ensure<Component>().ungroup(id);
+	}
+
+	template<typename Component>
+	bool ungroup() noexcept {
+		return ensure<Component>().ungroup();
+	}
+
+	template<typename Component>
+	size_type grouped(group_type id) const noexcept {
+		return ensure<Component>().grouped(id);
+	}
+
+	template<typename Component>
+	size_type groups() const noexcept {
+		return ensure<Component>().groups();
+	}
+
 
     /**
      * @brief Returns the numeric identifier of a type of tag at runtime.
@@ -613,6 +707,7 @@ public:
     template<typename Component, typename... Args>
     Component & assign(entity_type entity, Args &&... args) {
         assert(valid(entity));
+
         return ensure<Component>().construct(*this, entity, std::forward<Args>(args)...);
     }
 
@@ -1161,6 +1256,7 @@ private:
     std::vector<entity_type> entities;
     size_type available{};
     entity_type next{};
+	group_type group_id{0};
 };
 
 

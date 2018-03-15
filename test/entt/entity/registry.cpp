@@ -6,6 +6,50 @@
 #include <entt/entity/entt_traits.hpp>
 #include <entt/entity/registry.hpp>
 
+TEST(DefaultRegistry, Grouping) {
+	entt::DefaultRegistry registry;
+
+	auto e0 = registry.create<entt::DefaultRegistry::group_type>(1);
+	ASSERT_EQ(registry.groups(), 0u);
+
+	registry.grouping(registry.get<entt::DefaultRegistry::group_type>(e0));
+	ASSERT_EQ(registry.groups(), 0u);
+
+	auto e1 = registry.create<float>(1.0f);
+	auto e2 = registry.create<float>(2.0f);
+	ASSERT_EQ(registry.groups(), 1u);
+
+	auto e3 = registry.create<entt::DefaultRegistry::group_type, float>(2, 3.0f);
+	ASSERT_EQ(registry.groups(), 2u);
+
+	registry.grouping(registry.get<entt::DefaultRegistry::group_type>(e3));
+
+	auto e4 = registry.create<entt::DefaultRegistry::group_type, float>(3, 4.0f);
+	ASSERT_EQ(registry.groups(), 4u);
+
+	auto e5 = registry.create<float>(5.0f);
+	ASSERT_EQ(registry.groups(), 4u);
+
+	registry.grouping(registry.get<entt::DefaultRegistry::group_type>(e4));
+
+	auto e6 = registry.create<float>(6.0f);
+	ASSERT_EQ(registry.groups(), 5u);
+
+	registry.grouping();
+	ASSERT_EQ(registry.groups(), 5u);
+	ASSERT_EQ(registry.size(), 7u);
+
+	registry.view<entt::DefaultRegistry::group_type>().each([&registry](auto eg, auto& gid) {
+		registry.grouping(gid);
+
+		registry.view<float>().each([&eg, &gid](auto e, auto& f) {
+			ASSERT_NE(f, 0.0f);
+		});
+
+		registry.grouping();
+	});
+}
+
 TEST(DefaultRegistry, Functionalities) {
     entt::DefaultRegistry registry;
 
