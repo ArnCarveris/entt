@@ -6,48 +6,117 @@
 #include <entt/entity/entt_traits.hpp>
 #include <entt/entity/registry.hpp>
 
+#define GTEST_COUT std::cerr << "[          ] [ INFO ]"
+
+namespace
+{
+	template<typename C> void view_group_top_down(
+		entt::DefaultRegistry& registry, 
+		entt::DefaultRegistry::group_type group,
+		const std::function<void(entt::DefaultRegistry::entity_type, C&)> fn
+	) {
+		registry.grouping(group);
+
+		registry.view<C>().each(fn);
+
+		auto view = registry.view<entt::DefaultRegistry::group_type>();
+
+		for (auto e : view) {
+			view_group_top_down<C>(registry, view.get(e), fn);
+		}
+
+		registry.grouping();
+	}
+
+
+	template<typename C> void view_group_flat_reverse(
+		entt::DefaultRegistry& registry,
+		const std::function<void(entt::DefaultRegistry::entity_type, C&)> fn
+	) {
+		auto view = registry.view<entt::DefaultRegistry::group_type>();
+
+		for (auto e : view) {
+
+			registry.grouping(view.get(e));
+
+			registry.view<C>().each(fn);
+
+			registry.grouping();
+		}
+	}
+}
+
 TEST(DefaultRegistry, Grouping) {
 	entt::DefaultRegistry registry;
 
-	auto e0 = registry.create<entt::DefaultRegistry::group_type>(1);
+	auto s0 = 3;
+	auto s1 = 30;
+	auto s2 = 20;
+	auto s3 = 10;
+
+	auto g1 = registry.create();
+	auto g2 = registry.create();
+	auto g3 = registry.create();
+
+	registry.assign<entt::DefaultRegistry::group_type>(g1, 1);
 	ASSERT_EQ(registry.groups(), 0u);
 
-	registry.grouping(registry.get<entt::DefaultRegistry::group_type>(e0));
+	registry.grouping(registry.get<entt::DefaultRegistry::group_type>(g1));
 	ASSERT_EQ(registry.groups(), 0u);
 
-	auto e1 = registry.create<float>(1.0f);
-	auto e2 = registry.create<float>(2.0f);
+	for (int i = 0; i < s1; ++i)
+	{
+		registry.create<std::string>(">entity#"+std::to_string(i));
+	}
+	
 	ASSERT_EQ(registry.groups(), 1u);
-
-	auto e3 = registry.create<entt::DefaultRegistry::group_type, float>(2, 3.0f);
+	registry.assign<entt::DefaultRegistry::group_type>(g2, 2);
+	registry.assign<std::string>(g2, ">group[2]");
 	ASSERT_EQ(registry.groups(), 2u);
 
-	registry.grouping(registry.get<entt::DefaultRegistry::group_type>(e3));
+	ASSERT_EQ(registry.grouped<entt::DefaultRegistry::group_type>(registry.get<entt::DefaultRegistry::group_type>(g1)), 1u);
+	ASSERT_EQ(registry.grouped<std::string>(registry.get<entt::DefaultRegistry::group_type>(g1)), s1 + 1u);
+	
 
-	auto e4 = registry.create<entt::DefaultRegistry::group_type, float>(3, 4.0f);
+	registry.grouping(registry.get<entt::DefaultRegistry::group_type>(g2));
+	ASSERT_EQ(registry.groups(), 2u);
+
+	registry.assign<entt::DefaultRegistry::group_type>(g3, 3);
+	registry.assign<std::string>(g3, ">>group[3]");
 	ASSERT_EQ(registry.groups(), 4u);
 
-	auto e5 = registry.create<float>(5.0f);
+	for (int i = 0; i < s2; ++i)
+	{
+		registry.create<std::string>(">>entity#" + std::to_string(i));
+	}
+
 	ASSERT_EQ(registry.groups(), 4u);
 
-	registry.grouping(registry.get<entt::DefaultRegistry::group_type>(e4));
+	registry.grouping(registry.get<entt::DefaultRegistry::group_type>(g3));
+	ASSERT_EQ(registry.groups(), 4u);
 
-	auto e6 = registry.create<float>(6.0f);
+	for (int i = 0; i < s3; ++i)
+	{
+		registry.create<std::string>(">>>entity#" + std::to_string(i));
+	}
+
 	ASSERT_EQ(registry.groups(), 5u);
 
 	registry.grouping();
 	ASSERT_EQ(registry.groups(), 5u);
-	ASSERT_EQ(registry.size(), 7u);
+	ASSERT_EQ(registry.size(), s0 + s1 + s2 + s3);
 
-	registry.view<entt::DefaultRegistry::group_type>().each([&registry](auto eg, auto& gid) {
-		registry.grouping(gid);
-
-		registry.view<float>().each([&eg, &gid](auto e, auto& f) {
-			ASSERT_NE(f, 0.0f);
-		});
-
-		registry.grouping();
-	});
+	view_group_top_down<std::string>(
+		registry, registry.get<entt::DefaultRegistry::group_type>(g1),
+		[](entt::DefaultRegistry::entity_type e, std::string& name) {
+			GTEST_COUT <<" top_down: " << name << std::endl;
+		}
+	);
+	view_group_flat_reverse<std::string>(
+		registry, [](entt::DefaultRegistry::entity_type e, std::string& name) {
+			GTEST_COUT <<" flat_reverse: " << name << std::endl;
+		}
+	);
 }
 
 TEST(DefaultRegistry, Functionalities) {
