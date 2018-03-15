@@ -282,22 +282,23 @@ public:
 			group_id = id;
 		}
 
-		return ensure<Component>().ungroup(id);
+		return managed<Component>() && pool<Component>().ungroup(id);
 	}
 
 	template<typename Component>
 	bool ungroup() noexcept {
-		return ensure<Component>().ungroup();
+		return managed<Component>() && pool<Component>().ungroup();
 	}
 
 	template<typename Component>
 	size_type grouped(group_type id) const noexcept {
-		return ensure<Component>().grouped(id);
+
+		return managed<Component>() ? pool<Component>().grouped(id) : 0;
 	}
 
 	template<typename Component>
 	size_type groups() const noexcept {
-		return ensure<Component>().groups();
+		return managed<Component>() ? pool<Component>().groups() : 0;
 	}
 
 
