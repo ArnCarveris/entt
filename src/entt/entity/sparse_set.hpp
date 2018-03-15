@@ -278,14 +278,21 @@ public:
      * @return An iterator to the first element of the internal packed array.
      */
     iterator_type begin() const noexcept {
-		if (group_id > 0 && group_it != group_ranges.end())
+    		size_type pos = 0;
+		
+		if (group_id > 0)
 		{
-			return Iterator{ direct, group_it->second.second};
+			if (group_it != group_ranges.end())
+			{
+				pos = group_it->second.second;
+			}
 		}
 		else
 		{
-			return Iterator{ direct, direct.size() };
+			pos = direct.size();	
 		}
+		
+		return Iterator{ direct, pos };
     }
 
     /**
@@ -302,14 +309,14 @@ public:
      * internal packed array.
      */
     iterator_type end() const noexcept {
+    		size_type pos = 0;
+		
 		if (group_id > 0 && group_it != group_ranges.end())
 		{
-			return Iterator{ direct, group_it->second.first };
+			pos = group_it->second.first;
 		}
-		else
-		{
-			return Iterator{ direct, 0 };
-		}
+		
+		return Iterator{ direct, pos };
     }
 
     /**
