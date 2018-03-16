@@ -44,6 +44,45 @@ namespace
 			registry.grouping();
 		}
 	}
+
+	template<typename C> void raw_view_group_top_down(
+		entt::DefaultRegistry& registry,
+		entt::DefaultRegistry::group_type group,
+		const std::function<void(C&)> fn
+	) {
+		registry.grouping(group);
+
+		for (auto &c : registry.raw<C>())
+		{
+			fn(c);
+		}
+
+		for (auto&& g : registry.raw<entt::DefaultRegistry::group_type>()) {
+			raw_view_group_top_down<C>(registry, g, fn);
+		}
+
+		registry.grouping();
+	}
+
+
+	template<typename C> void raw_view_group_flat_reverse(
+		entt::DefaultRegistry& registry,
+		const std::function<void(C&)> fn
+	) {
+		registry.grouping();
+
+		for (auto &&g : registry.raw<entt::DefaultRegistry::group_type>())
+		{
+			registry.grouping(g);
+
+			for (auto &c : registry.raw<C>())
+			{
+				fn(c);
+			}
+		}
+
+		registry.grouping();
+	}
 }
 
 TEST(DefaultRegistry, Grouping) {
@@ -116,6 +155,18 @@ TEST(DefaultRegistry, Grouping) {
 		registry, [](entt::DefaultRegistry::entity_type e, std::string& name) {
 			GTEST_COUT <<" flat_reverse: " << name << std::endl;
 		}
+	);
+
+	raw_view_group_top_down<std::string>(
+		registry, registry.get<entt::DefaultRegistry::group_type>(g1),
+		[](std::string& name) {
+		GTEST_COUT << " raw_top_down: " << name << std::endl;
+	}
+	);
+	raw_view_group_flat_reverse<std::string>(
+		registry, [](std::string& name) {
+		GTEST_COUT << " raw_flat_reverse: " << name << std::endl;
+	}
 	);
 }
 
