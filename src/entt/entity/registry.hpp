@@ -111,7 +111,7 @@ class Registry {
     Pool<Component> & pool() noexcept {
 		auto& ref = const_cast<Pool<Component> &>(const_cast<const Registry *>(this)->pool<Component>());
 
-		ref.grouping(group_id);
+		ref.ranges.select(group_id);
 
         return ref;
     }
@@ -141,13 +141,13 @@ class Registry {
         }
 
 		if (handlers[vtype]) {
-			handlers[vtype]->grouping(group_id);
+			handlers[vtype]->ranges.select(group_id);
 		}
 		else {
             using accumulator_type = int[];
             auto set = std::make_unique<SparseSet<Entity>>();
 
-			set->grouping(group_id);
+			set->ranges.select(group_id);
 
             for(auto entity: view<Component...>()) {
                 set->construct(entity);
@@ -203,8 +203,8 @@ public:
 			return false;
 		}
 		
-        	const auto first_pos = first_entity & traits_type::entity_mask;
-        	const auto last_pos = last_entity & traits_type::entity_mask;
+        const auto first_pos = first_entity & traits_type::entity_mask;
+        const auto last_pos = last_entity & traits_type::entity_mask;
 	
 		if (first_pos >= entities.size() || last_pos >= entities.size())
 		{
@@ -227,7 +227,7 @@ public:
 
 		for (auto& pool : pools) {
 			if (pool) {
-				ret |= pool->ungroup();
+				ret |= pool->ranges.reset();
 			}
 		}
 
@@ -240,7 +240,7 @@ public:
 
 		for (auto& pool : pools) {
 			if (pool) {
-				ret |= pool->ungroup(id);
+				ret |= pool->ranges.destroy(id);
 			}
 		}
 
@@ -256,7 +256,7 @@ public:
 
 		for (auto& pool : pools) {
 			if (pool) {
-				ret += pool->grouped(id);
+				ret += pool->ranges.size(id);
 			}
 		}
 
@@ -268,7 +268,7 @@ public:
 
 		for (auto& pool : pools) {
 			if (pool){
-				ret += pool->groups();
+				ret += pool->ranges.count();
 			}
 		}
 
@@ -282,23 +282,23 @@ public:
 			group_id = id;
 		}
 
-		return managed<Component>() && pool<Component>().ungroup(id);
+		return managed<Component>() && pool<Component>().ranges.destroy(id);
 	}
 
 	template<typename Component>
 	bool ungroup() noexcept {
-		return managed<Component>() && pool<Component>().ungroup();
+		return managed<Component>() && pool<Component>().ranges.reset();
 	}
 
 	template<typename Component>
 	size_type grouped(group_type id) const noexcept {
 
-		return managed<Component>() ? pool<Component>().grouped(id) : 0;
+		return managed<Component>() ? pool<Component>().ranges.size(id) : 0;
 	}
 
 	template<typename Component>
 	size_type groups() const noexcept {
-		return managed<Component>() ? pool<Component>().groups() : 0;
+		return managed<Component>() ? pool<Component>().ranges.count() : 0;
 	}
 
 

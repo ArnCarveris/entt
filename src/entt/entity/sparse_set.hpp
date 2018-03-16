@@ -11,6 +11,7 @@
 #include <cassert>
 #include <type_traits>
 #include "entt_traits.hpp"
+#include "sparse_range.hpp"
 
 
 namespace entt {
@@ -112,8 +113,9 @@ public:
     /*! @brief Input iterator type. */
     using iterator_type = Iterator;
 
-	using group_type = std::size_t;
-	using groups_type = std::unordered_map<group_type, std::pair<std::size_t, std::size_t>>;
+	using ranges_type = SparseRange<Entity>;
+
+	using group_type = typename SparseRange<Entity>::range_id_type;
 
     /*! @brief Default constructor. */
     SparseSet() /*noexcept*/ = default;
@@ -131,83 +133,14 @@ public:
     /*! @brief Default move assignment operator. @return This sparse set. */
     SparseSet & operator=(SparseSet &&) = default;
 
-	bool grouping(group_type id = 0) noexcept {
-		if (id > 0)
-		{
-			group_id = id;
-			group_it = group_ranges.find(id);
-
-			return group_it != group_ranges.end();
-		}
-		else if (group_id > 0)
-		{
-			group_id = 0;
-
-			if (group_it == group_ranges.end())
-			{
-				return false;
-			}
-		}
-
-		group_it = group_ranges.end();
-
-		return true;
-	}
 	
 	bool regroup(group_type id, entity_type first_entity, entity_type last_entity) noexcept {
 		if (id == 0 || !has(first_entity) || !has(last_entity))
 		{
 			return false;
 		}
-		
-		group_ranges[id] = std::make_pair(get(first_entity), get(last_entity) + 1);
-		
-		return true;
-	}
 
-	bool ungroup(group_type id) noexcept
-	{
-		auto it = group_ranges.find(id);
-
-		if (it == group_ranges.end())
-		{
-			return false;
-		}
-
-		group_ranges.erase(it);
-
-		if (group_id == id)
-		{
-			group_id = 0;
-			group_it = group_ranges.end();
-		}
-
-		return true;
-	}
-	bool ungroup() noexcept
-	{
-		group_ranges.clear();
-		group_it = group_ranges.end();
-		group_id = 0;
-
-		return true;
-	}
-
-	size_type grouped(group_type id) const noexcept
-	{
-		auto it = group_ranges.find(id);
-
-		if (it != group_ranges.end())
-		{
-			return it->second.second - it->second.first;
-		}
-
-		return 0;
-	}
-
-	size_type groups() const noexcept
-	{
-		return group_ranges.size();
+		return ranges.assign(id, get(first_entity), get(last_entity));
 	}
     /**
      * @brief Increases the capacity of a sparse set.
@@ -289,21 +222,7 @@ public:
      * @return An iterator to the first entity of the internal packed array.
      */
     iterator_type begin() const noexcept {
-    		size_type pos = 0;
-		
-		if (group_id > 0)
-		{
-			if (group_it != group_ranges.end())
-			{
-				pos = group_it->second.second;
-			}
-		}
-		else
-		{
-			pos = direct.size();	
-		}
-		
-		return Iterator{ direct, pos };
+		return Iterator{ direct, ranges.rbegin(direct.size()) };
     }
 
     /**
@@ -320,14 +239,7 @@ public:
      * internal packed array.
      */
     iterator_type end() const noexcept {
-    		size_type pos = 0;
-		
-		if (group_id > 0 && group_it != group_ranges.end())
-		{
-			pos = group_it->second.first;
-		}
-		
-		return Iterator{ direct, pos };
+		return Iterator{ direct, ranges.rend(0) };
     }
 
     /**
@@ -406,18 +318,7 @@ public:
         // traits_type::version_mask bits unused we can use to mark it as in-use
         reverse[pos] = pos_type(direct.size()) | in_use;
         direct.emplace_back(entity);
-
-		if (group_id > 0)
-		{
-			if (group_it == group_ranges.end())
-			{
-				group_it = group_ranges.emplace(group_id, std::make_pair(direct.size() - 1,direct.size())).first;
-			}
-			else
-			{
-				group_it->second.second = direct.size();
-			}
-		}
+		ranges.expand(direct.size());
     }
     /**
      * @brief Removes an entity from a sparse set.
@@ -492,7 +393,7 @@ public:
 
         pos_type pos = direct.size() - 1;
 
-		ungroup();
+		ranges.reset();
 
         while(pos && from != to) {
             if(has(*from)) {
@@ -513,16 +414,14 @@ public:
     virtual void reset() {
         reverse.clear();
         direct.clear();
-		ungroup();
+		ranges.reset();
     }
 
 private:
     std::vector<pos_type> reverse;
     std::vector<entity_type> direct;
-
-	groups_type group_ranges{};
-	groups_type::iterator group_it{};
-	group_type group_id{0};
+public:
+	ranges_type ranges;
 };
 
 
@@ -684,7 +583,7 @@ public:
      * @return An iterator to the first instance of the given type.
      */
     iterator_type begin() const noexcept {
-        return Iterator{instances, instances.size()};
+        return Iterator{instances, ranges.rbegin(instances.size())};
     }
 
     /**
@@ -702,7 +601,7 @@ public:
      * given type.
      */
     iterator_type end() const noexcept {
-        return Iterator{instances, 0};
+        return Iterator{instances, ranges.rend(0)};
     }
 
     /**
@@ -839,7 +738,7 @@ public:
     template<typename Compare>
     void sort(Compare compare) {
 
-		ungroup();
+		ranges.reset();
 
         std::vector<pos_type> copy(instances.size());
         std::iota(copy.begin(), copy.end(), 0);
@@ -888,7 +787,7 @@ public:
      * @param other The sparse sets that imposes the order of the entities.
      */
     void respect(const SparseSet<Entity> &other) noexcept {
-		ungroup();
+		ranges.reset();
 
         auto from = other.begin();
         auto to = other.end();
