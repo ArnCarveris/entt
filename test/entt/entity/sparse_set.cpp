@@ -2,42 +2,6 @@
 #include <gtest/gtest.h>
 #include <entt/entity/sparse_set.hpp>
 
-TEST(SparseSetNoType, Grouping) {
-	
-	entt::SparseSet<unsigned int> set;
-
-	set.grouping(1);
-	ASSERT_EQ(set.groups(), 0u);
-
-	set.construct(11);
-	set.construct(111);
-	set.construct(1111);
-
-	ASSERT_EQ(set.groups(), 1u);
-	ASSERT_EQ(set.grouped(1), 3u);
-	ASSERT_EQ(set.size(), 3u);
-
-	set.grouping(2);
-	set.construct(22);
-	set.construct(2222);
-
-	ASSERT_EQ(set.groups(), 2u);
-	ASSERT_EQ(set.grouped(2), 2u);
-	ASSERT_EQ(set.size(), 5u);
-
-	set.grouping(3);
-	set.construct(333);
-
-	ASSERT_EQ(set.groups(), 3u);
-	ASSERT_EQ(set.grouped(3), 1u);
-	ASSERT_EQ(set.size(), 6u);
-
-	set.grouping(4);
-	set.grouping();
-
-	ASSERT_EQ(set.groups(), 3u);
-	ASSERT_EQ(set.size(), 6u);
-}
 
 TEST(SparseSetNoType, Functionalities) {
     entt::SparseSet<unsigned int> set;
@@ -278,43 +242,6 @@ TEST(SparseSetNoType, RespectUnordered) {
     ASSERT_EQ(rhs.get(3), 3u);
     ASSERT_EQ(rhs.get(4), 4u);
     ASSERT_EQ(rhs.get(5), 5u);
-}
-
-TEST(SparseSetWithType, Grouping) {
-
-	entt::SparseSet<unsigned int, int> set;
-
-	set.grouping(1);
-	ASSERT_EQ(set.groups(), 0u);
-
-	set.construct(11, 99);
-	set.construct(111, 999);
-	set.construct(1111, 9999);
-
-	ASSERT_EQ(set.groups(), 1u);
-	ASSERT_EQ(set.grouped(1), 3u);
-	ASSERT_EQ(set.size(), 3u);
-
-	set.grouping(2);
-	set.construct(22, 88);
-	set.construct(2222, 8888);
-
-	ASSERT_EQ(set.groups(), 2u);
-	ASSERT_EQ(set.grouped(2), 2u);
-	ASSERT_EQ(set.size(), 5u);
-
-	set.grouping(3);
-	set.construct(333, 777);
-
-	ASSERT_EQ(set.groups(), 3u);
-	ASSERT_EQ(set.grouped(3), 1u);
-	ASSERT_EQ(set.size(), 6u);
-
-	set.grouping(4);
-	set.grouping();
-
-	ASSERT_EQ(set.groups(), 3u);
-	ASSERT_EQ(set.size(), 6u);
 }
 
 TEST(SparseSetWithType, Functionalities) {
