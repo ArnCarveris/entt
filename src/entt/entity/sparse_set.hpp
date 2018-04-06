@@ -66,10 +66,13 @@ template<typename Entity>
 class SparseSet<Entity> {
     using traits_type = entt_traits<Entity>;
 
-    template<typename...> friend class SparseSetExtension;
+    /*! @brief TODO */
+    template<typename...> 
+    friend class SparseSetExtension;
 
     struct Iterator final {
-        template<typename...> friend class SparseSetExtension;
+        template<typename...> 
+        friend class SparseSetExtension;
 
         using difference_type = std::size_t;
         using value_type = Entity;
@@ -116,8 +119,9 @@ class SparseSet<Entity> {
     static constexpr Entity in_use = (Entity{1} << traits_type::entity_shift);
 
 public:
-    /*! @brief Extension template type. */
-    template <typename T> using extension_type = SparseSetExtension<T, Entity>;
+    /*! @brief TODO */
+    template <typename Extension>
+    using extension_type = SparseSetExtension<Extension, Entity>;
     /*! @brief Underlying entity identifier. */
     using entity_type = Entity;
     /*! @brief Entity dependent position type. */
@@ -143,8 +147,9 @@ public:
     /*! @brief Default move assignment operator. @return This sparse set. */
     SparseSet & operator=(SparseSet &&) = default;
 
-    /*! @brief Extension constructor. @return Extension within this sparse set . */
-    template<typename Extension, typename... Args> SparseSet<Entity>::extension_type<Extension> extension(Args &&... args) noexcept {
+    /*! @brief TODO */
+    template<typename Extension, typename... Args> 
+    SparseSet<Entity>::extension_type<Extension> extension(Args &&... args) noexcept {
         return SparseSet<Entity>::extension_type<Extension>(this, std::forward<Args>(args)...);
     }
     /**
@@ -452,11 +457,13 @@ template<typename Entity, typename Type>
 class SparseSet<Entity, Type>: public SparseSet<Entity> {
     using underlying_type = SparseSet<Entity>;
 
-    /*! @brief A sparse set extension have private access internal structures. */
-    template<typename...> friend class SparseSetExtension;
+    /*! @brief TODO */
+    template<typename...> 
+    friend class SparseSetExtension;
 
     struct Iterator final {
-        template<typename...> friend class SparseSetExtension;
+        template<typename...> 
+        friend class SparseSetExtension;
 
         using difference_type = std::size_t;
         using value_type = Type;
@@ -501,8 +508,9 @@ class SparseSet<Entity, Type>: public SparseSet<Entity> {
     };
 
 public:
-    /*! @brief Extension template type. */
-    template <typename T> using extension_type = SparseSetExtension<T, Entity, Type>;
+    /*! @brief TODO */
+    template <typename Extension> 
+    using extension_type = SparseSetExtension<Extension, Entity, Type>;
     /*! @brief Type of the objects associated to the entities. */
     using object_type = Type;
     /*! @brief Underlying entity identifier. */
@@ -527,8 +535,9 @@ public:
     /*! @brief Default move assignment operator. @return This sparse set. */
     SparseSet & operator=(SparseSet &&) = default;
 
-    /*! @brief Extension constructor. @return Extension within this sparse set . */
-    template<typename Extension, typename... Args> SparseSet<Entity, Type>::extension_type<Extension> extension(Args &&... args) noexcept {
+    /*! @brief TODO */
+    template<typename Extension, typename... Args> 
+    SparseSet<Entity, Type>::extension_type<Extension> extension(Args &&... args) noexcept {
         return SparseSet<Entity, Type>::extension_type<Extension>(this, std::forward<Args>(args)...);
     }
     /**
