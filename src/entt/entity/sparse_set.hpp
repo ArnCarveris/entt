@@ -3,6 +3,7 @@
 
 
 #include <algorithm>
+#include <iterator>
 #include <numeric>
 #include <utility>
 #include <vector>
@@ -76,6 +77,9 @@ class SparseSet<Entity> {
 
         using difference_type = std::size_t;
         using value_type = Entity;
+        using pointer = value_type *;
+        using reference = value_type;
+        using iterator_category = std::input_iterator_tag;
 
         Iterator(const std::vector<value_type> &direct, std::size_t pos)
             : direct{direct}, pos{pos}
@@ -107,7 +111,7 @@ class SparseSet<Entity> {
             return !(*this == other);
         }
 
-        value_type operator*() const noexcept {
+        reference operator*() const noexcept {
             return direct[pos-1];
         }
 
@@ -467,8 +471,11 @@ class SparseSet<Entity, Type>: public SparseSet<Entity> {
 
         using difference_type = std::size_t;
         using value_type = Type;
+        using pointer = value_type *;
+        using reference = value_type &;
+        using iterator_category = std::input_iterator_tag;
 
-        Iterator(const std::vector<value_type> &instances, std::size_t pos)
+        Iterator(std::vector<value_type> &instances, std::size_t pos)
             : instances{instances}, pos{pos}
         {}
 
@@ -498,12 +505,16 @@ class SparseSet<Entity, Type>: public SparseSet<Entity> {
             return !(*this == other);
         }
 
-        value_type operator*() const noexcept {
+        reference operator*() noexcept {
             return instances[pos-1];
         }
 
+        pointer operator->() noexcept {
+            return &instances.data()[pos-1];
+        }
+
     private:
-        const std::vector<value_type> &instances;
+        std::vector<value_type> &instances;
         std::size_t pos;
     };
 
@@ -603,7 +614,7 @@ public:
      *
      * @return An iterator to the first instance of the given type.
      */
-    iterator_type begin() const noexcept {
+    iterator_type begin() noexcept {
         return Iterator{instances, instances.size()};
     }
 
@@ -621,7 +632,7 @@ public:
      * @return An iterator to the element following the last instance of the
      * given type.
      */
-    iterator_type end() const noexcept {
+    iterator_type end() noexcept {
         return Iterator{instances, 0};
     }
 

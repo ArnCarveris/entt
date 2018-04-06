@@ -13,6 +13,7 @@
 #include <type_traits>
 #include "../core/family.hpp"
 #include "entt_traits.hpp"
+#include "snapshot.hpp"
 #include "sparse_set.hpp"
 #include "view.hpp"
 
@@ -123,7 +124,7 @@ class Registry {
     }
 
     template<typename Component>
-    Pool<Component> & ensure() {
+    Pool<Component> & assure() {
         const auto ctype = component_family::type<Component>();
 
         if(!(ctype < pools.size())) {
@@ -155,7 +156,7 @@ class Registry {
             }
 
             accumulator_type accumulator = {
-                (ensure<Component>().append(set.get(), &Registry::has<Component...>), 0)...
+                (assure<Component>().append(set.get(), &Registry::has<Component...>), 0)...
             };
 
             handlers[vtype] = std::move(set);
@@ -261,7 +262,7 @@ public:
      */
     template<typename Component>
     void reserve(size_type cap) {
-        ensure<Component>().reserve(cap);
+        assure<Component>().reserve(cap);
     }
 
     /**
@@ -392,7 +393,7 @@ public:
     entity_type create(Component &&... components) noexcept {
         using accumulator_type = int[];
         const auto entity = create();
-        accumulator_type accumulator = { 0, (ensure<std::decay_t<Component>>().construct(*this, entity, std::forward<Component>(components)), 0)... };
+        accumulator_type accumulator = { 0, (assure<std::decay_t<Component>>().construct(*this, entity, std::forward<Component>(components)), 0)... };
         (void)accumulator;
         return entity;
     }
@@ -419,7 +420,7 @@ public:
     entity_type create() noexcept {
         using accumulator_type = int[];
         const auto entity = create();
-        accumulator_type accumulator = { 0, (ensure<Component>().construct(*this, entity), 0)... };
+        accumulator_type accumulator = { 0, (assure<Component>().construct(*this, entity), 0)... };
         (void)accumulator;
         return entity;
     }
@@ -494,7 +495,7 @@ public:
     }
 
     /**
-     * @brief Attaches a tag to an entity.
+     * @brief Attaches the given tag to an entity.
      *
      * Usually, pools of components allocate enough memory to store a bunch of
      * elements even if only one of them is used. On the other hand, there are
@@ -530,7 +531,7 @@ public:
     }
 
     /**
-     * @brief Removes a tag from its owner, if any.
+     * @brief Removes the given tag from its owner, if any.
      * @tparam Tag Type of tag to remove.
      */
     template<typename Tag>
@@ -541,7 +542,7 @@ public:
     }
 
     /**
-     * @brief Checks if a tag has an owner.
+     * @brief Checks if the given tag has an owner.
      * @tparam Tag Type of tag for which to perform the check.
      * @return True if the tag already has an owner, false otherwise.
      */
@@ -556,7 +557,7 @@ public:
     }
 
     /**
-     * @brief Returns a reference to a tag.
+     * @brief Returns a reference to the given tag.
      *
      * @warning
      * Attempting to get a tag that hasn't an owner results in undefined
@@ -574,7 +575,7 @@ public:
     }
 
     /**
-     * @brief Returns a reference to a tag.
+     * @brief Returns a reference to the given tag.
      *
      * @warning
      * Attempting to get a tag that hasn't an owner results in undefined
@@ -591,7 +592,56 @@ public:
     }
 
     /**
-     * @brief Gets the owner of a tag, if any.
+     * @brief Replaces the given tag.
+     *
+     * A new instance of the given tag is created and initialized with the
+     * arguments provided (the tag must have a proper constructor or be of
+     * aggregate type).
+     *
+     * @warning
+     * Attempting to replace a tag that hasn't an owner results in undefined
+     * behavior.<br/>
+     * An assertion will abort the execution at runtime in debug mode if the
+     * tag hasn't been previously attached to an entity.
+     *
+     * @tparam Tag Type of tag to replace.
+     * @tparam Args Types of arguments to use to construct the tag.
+     * @param args Parameters to use to initialize the tag.
+     * @return A reference to the tag.
+     */
+    template<typename Tag, typename... Args>
+    Tag & set(Args &&... args) {
+        return get<Tag>() = Tag{std::forward<Args>(args)...};
+    }
+
+    /**
+     * @brief Changes the owner of the given tag.
+     *
+     * The ownership of the tag is transferred from one entity to another.
+     *
+     * @warning
+     * Attempting to use an invalid entity or to transfer the ownership of a tag
+     * that hasn't an owner results in undefined behavior.<br/>
+     * An assertion will abort the execution at runtime in debug mode in case of
+     * invalid entity or if the tag hasn't been previously attached to an
+     * entity.
+     *
+     * @tparam Tag Type of tag of which to transfer the ownership.
+     * @param entity A valid entity identifier.
+     * @return A valid entity identifier.
+     */
+    template<typename Tag>
+    entity_type move(entity_type entity) {
+        assert(valid(entity));
+        assert(has<Tag>());
+        const auto ttype = tag_family::type<Tag>();
+        const auto owner = tags[ttype]->entity;
+        tags[ttype]->entity = entity;
+        return owner;
+    }
+
+    /**
+     * @brief Gets the owner of the given tag, if any.
      *
      * @warning
      * Attempting to get the owner of a tag that hasn't been previously attached
@@ -631,7 +681,7 @@ public:
     template<typename Component, typename... Args>
     Component & assign(entity_type entity, Args &&... args) {
         assert(valid(entity));
-        return ensure<Component>().construct(*this, entity, std::forward<Args>(args)...);
+        return assure<Component>().construct(*this, entity, std::forward<Args>(args)...);
     }
 
     /**
@@ -776,8 +826,7 @@ public:
      */
     template<typename Component, typename... Args>
     Component & replace(entity_type entity, Args &&... args) {
-        assert(valid(entity));
-        return (pool<Component>().get(entity) = Component{std::forward<Args>(args)...});
+        return (get<Component>(entity) = Component{std::forward<Args>(args)...});
     }
 
     /**
@@ -810,7 +859,7 @@ public:
     template<typename Component, typename... Args>
     Component & accommodate(entity_type entity, Args &&... args) {
         assert(valid(entity));
-        auto &cpool = ensure<Component>();
+        auto &cpool = assure<Component>();
 
         return (cpool.has(entity)
                 ? (cpool.get(entity) = Component{std::forward<Args>(args)...})
@@ -842,7 +891,7 @@ public:
      */
     template<typename Component, typename Compare>
     void sort(Compare compare) {
-        ensure<Component>().sort(std::move(compare));
+        assure<Component>().sort(std::move(compare));
     }
 
     /**
@@ -877,7 +926,7 @@ public:
      */
     template<typename To, typename From>
     void sort() {
-        ensure<To>().respect(ensure<From>());
+        assure<To>().respect(assure<From>());
     }
 
     /**
@@ -967,10 +1016,11 @@ public:
         if(available) {
             for(auto pos = entities.size(); pos; --pos) {
                 const entity_type curr = pos - 1;
-                const auto entt = entities[curr] & traits_type::entity_mask;
+                const auto entity = entities[curr];
+                const auto entt = entity & traits_type::entity_mask;
 
                 if(curr == entt) {
-                    func(entities[curr]);
+                    func(entity);
                 }
             }
         } else {
@@ -1066,7 +1116,7 @@ public:
      */
     template<typename... Component>
     View<Entity, Component...> view() {
-        return View<Entity, Component...>{ensure<Component>()...};
+        return View<Entity, Component...>{assure<Component>()...};
     }
 
     /**
@@ -1198,9 +1248,80 @@ public:
      */
     template<typename Component>
     RawView<Entity, Component> raw() {
-        return RawView<Entity, Component>{ensure<Component>()};
+        return RawView<Entity, Component>{assure<Component>()};
     }
 
+    /**
+     * @brief Returns a temporary object to use to create snapshots.
+     *
+     * A snapshot is either a full or a partial dump of a registry.<br/>
+     * It can be used to save and restore its internal state or to keep two or
+     * more instances of this class in sync, as an example in a client-server
+     * architecture.
+     *
+     * @return A not movable and not copyable object to use to take snasphosts.
+     */
+    Snapshot<Entity> snapshot() const {
+        using follow_fn_type = entity_type(*)(const Registry &, entity_type);
+        using raw_fn_type = const entity_type *(*)(const Registry &, component_type);
+        const entity_type seed = available ? (next | (entities[next] & ~traits_type::entity_mask)) : next;
+
+        follow_fn_type follow = [](const Registry &registry, entity_type entity) -> entity_type {
+            const auto &entities = registry.entities;
+            const auto entt = entity & traits_type::entity_mask;
+            const auto next = entities[entt] & traits_type::entity_mask;
+            return (next | (entities[next] & ~traits_type::entity_mask));
+        };
+
+        raw_fn_type raw = [](const Registry &registry, component_type component) -> const entity_type * {
+            const auto &pools = registry.pools;
+            return (component < pools.size() && pools[component]) ? pools[component]->data() : nullptr;
+        };
+
+        return { *this, seed, available, follow, raw };
+    }
+
+    /**
+     * @brief Returns a temporary object to use to load snapshots.
+     *
+     * A snapshot is either a full or a partial dump of a registry.<br/>
+     * It can be used to save and restore its internal state or to keep two or
+     * more instances of this class in sync, as an example in a client-server
+     * architecture.
+     *
+     * @warning
+     * The loader returned by this function requires that the registry be empty.
+     * In case it isn't, all the data will be automatically deleted before to
+     * return.
+     *
+     * @return A not movable and not copyable object to use to load snasphosts.
+     */
+    SnapshotLoader<Entity> restore() {
+        using assure_fn_type = void(*)(Registry &, entity_type, bool);
+
+        assure_fn_type assure = [](Registry &registry, entity_type entity, bool destroyed) {
+            using promotion_type = std::conditional_t<sizeof(size_type) >= sizeof(entity_type), size_type, entity_type>;
+            // explicit promotion to avoid warnings with std::uint16_t
+            const auto entt = promotion_type{entity} & traits_type::entity_mask;
+            auto &entities = registry.entities;
+
+            if(!(entt < entities.size())) {
+                auto curr = entities.size();
+                entities.resize(entt + 1);
+                std::iota(entities.data() + curr, entities.data() + entt, entity_type(curr));
+            }
+
+            entities[entt] = entity;
+
+            if(destroyed) {
+                registry.destroy(entity);
+                const auto version = (entity & (~traits_type::entity_mask));
+                entities[entt] = ((entities[entt] & traits_type::entity_mask) | version);
+            }
+        };
+
+        return { (*this = {}), assure };
+    }
 
 private:
     std::vector<std::unique_ptr<SparseSet<Entity>>> handlers;
