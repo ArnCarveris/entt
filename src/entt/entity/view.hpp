@@ -15,6 +15,10 @@
 namespace entt {
 
 
+/*! @brief TODO */
+template<typename...> class ViewExtension;
+template<typename...> class RawViewExtension;
+template<typename...> class PersistentViewExtension;
 /**
  * @brief Forward declaration of the registry class.
  */
@@ -70,6 +74,10 @@ class PersistentView final {
     /*! @brief A registry is allowed to create views. */
     friend class Registry<Entity>;
 
+    /*! @brief TODO */
+    template<typename...> 
+    friend class PersistentViewExtension;
+
     template<typename Comp>
     using pool_type = SparseSet<Entity, Comp>;
 
@@ -81,6 +89,9 @@ class PersistentView final {
     {}
 
 public:
+    /*! @brief TODO */
+    template <typename Extension> 
+    using extension_type = PersistentViewExtension<Extension, Entity, Component...>;
     /*! @brief Input iterator type. */
     using iterator_type = typename view_type::iterator_type;
     /*! @brief Underlying entity identifier. */
@@ -88,6 +99,12 @@ public:
     /*! @brief Unsigned integer type. */
     using size_type = typename view_type::size_type;
 
+
+    /*! @brief TODO */
+    template<typename Extension, typename... Args> 
+    extension_type<Extension> extension(Args &&... args) noexcept {
+        return extension_type<Extension>(this, std::forward<Args>(args)...);
+    }
     /**
      * @brief Returns the number of entities that have the given components.
      * @return Number of entities that have the given components.
@@ -371,6 +388,10 @@ class View final {
     /*! @brief A registry is allowed to create views. */
     friend class Registry<Entity>;
 
+    /*! @brief TODO */
+    template<typename...> 
+    friend class ViewExtension;
+
     template<typename Comp>
     using pool_type = SparseSet<Entity, Comp>;
 
@@ -381,6 +402,9 @@ class View final {
     using traits_type = entt_traits<Entity>;
 
     class Iterator {
+        template<typename...>
+        friend class ViewExtension;
+
         using size_type = typename view_type::size_type;
 
         inline bool valid() const noexcept {
@@ -454,6 +478,9 @@ class View final {
     }
 
 public:
+    /*! @brief TODO */
+    template <typename Extension>
+    using extension_type = ViewExtension<Extension, Entity, Component...>;
     /*! @brief Input iterator type. */
     using iterator_type = Iterator;
     /*! @brief Underlying entity identifier. */
@@ -461,6 +488,11 @@ public:
     /*! @brief Unsigned integer type. */
     using size_type = typename view_type::size_type;
 
+    /*! @brief TODO */
+    template<typename Extension, typename... Args>
+    extension_type<Extension> extension(Args &&... args) noexcept {
+        return extension_type<Extension>(this, std::forward<Args>(args)...);
+    }
     /**
      * @brief Estimates the number of entities that have the given components.
      * @return Estimated number of entities that have the given components.
@@ -755,6 +787,10 @@ class View<Entity, Component> final {
     /*! @brief A registry is allowed to create views. */
     friend class Registry<Entity>;
 
+    /*! @brief TODO */
+    template<typename...> 
+    friend class ViewExtension;
+
     using view_type = SparseSet<Entity>;
     using pool_type = SparseSet<Entity, Component>;
 
@@ -763,6 +799,9 @@ class View<Entity, Component> final {
     {}
 
 public:
+    /*! @brief TODO */
+    template <typename Extension> 
+    using extension_type = ViewExtension<Extension, Entity, Component>;
     /*! @brief Input iterator type. */
     using iterator_type = typename view_type::iterator_type;
     /*! @brief Underlying entity identifier. */
@@ -772,6 +811,11 @@ public:
     /*! @brief Type of component iterated by the view. */
     using raw_type = typename pool_type::object_type;
 
+    /*! @brief TODO */
+    template<typename Extension, typename... Args>
+    extension_type<Extension> extension(Args &&... args) noexcept {
+        return extension_type<Extension>(this, std::forward<Args>(args)...);
+    }
     /**
      * @brief Returns the number of entities that have the given component.
      * @return Number of entities that have the given component.
@@ -1007,6 +1051,10 @@ class RawView final {
     /*! @brief A registry is allowed to create views. */
     friend class Registry<Entity>;
 
+    /*! @brief TODO */
+    template<typename...>
+    friend class RawViewExtension;
+
     using view_type = SparseSet<Entity>;
     using pool_type = SparseSet<Entity, Component>;
 
@@ -1015,6 +1063,9 @@ class RawView final {
     {}
 
 public:
+    /*! @brief TODO */
+    template <typename Extension> 
+    using extension_type = RawViewExtension<Extension, Entity, Component>;
     /*! @brief Input iterator type. */
     using iterator_type = typename pool_type::iterator_type;
     /*! @brief Underlying entity identifier. */
@@ -1024,6 +1075,11 @@ public:
     /*! @brief Type of component iterated by the view. */
     using raw_type = typename pool_type::object_type;
 
+    /*! @brief TODO */
+    template<typename Extension, typename... Args>
+    extension_type<Extension> extension(Args &&... args) noexcept {
+        return extension_type<Extension>(this, std::forward<Args>(args)...);
+    }
     /**
      * @brief Returns the number of instances of the given type.
      * @return Number of instances of the given component.
