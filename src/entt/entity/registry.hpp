@@ -169,7 +169,7 @@ class Registry {
 public:
     /*! @brief TODO */
     template <typename Extension>
-    using extension_type = RegistryExtension<Extension>;
+    using extension_type = RegistryExtension<Extension, Entity>;
     /*! @brief Underlying entity identifier. */
     using entity_type = typename traits_type::entity_type;
     /*! @brief Underlying version type. */
