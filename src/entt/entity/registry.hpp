@@ -771,7 +771,7 @@ public:
      * @return References to the components owned by the entity.
      */
     template<typename... Component>
-    std::enable_if_t<(sizeof...(Component) > 1), std::tuple<const Component &...>>
+    inline std::enable_if_t<(sizeof...(Component) > 1), std::tuple<const Component &...>>
     get(const entity_type entity) const ENTT_NOEXCEPT {
         return std::tuple<const Component &...>{get<Component>(entity)...};
     }
@@ -791,7 +791,7 @@ public:
      * @return References to the components owned by the entity.
      */
     template<typename... Component>
-    std::enable_if_t<(sizeof...(Component) > 1), std::tuple<Component &...>>
+    inline std::enable_if_t<(sizeof...(Component) > 1), std::tuple<Component &...>>
     get(const entity_type entity) ENTT_NOEXCEPT {
         return std::tuple<Component &...>{get<Component>(entity)...};
     }

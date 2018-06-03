@@ -323,7 +323,7 @@ public:
      * @return The components assigned to the entity.
      */
     template<typename... Comp>
-    std::enable_if_t<(sizeof...(Comp) > 1), std::tuple<const Comp &...>>
+    inline std::enable_if_t<(sizeof...(Comp) > 1), std::tuple<const Comp &...>>
     get(const entity_type entity) const ENTT_NOEXCEPT {
         assert(contains(entity));
         return std::tuple<const Comp &...>{get<Comp>(entity)...};
@@ -347,7 +347,7 @@ public:
      * @return The components assigned to the entity.
      */
     template<typename... Comp>
-    std::enable_if_t<(sizeof...(Comp) > 1), std::tuple<Comp &...>>
+    inline std::enable_if_t<(sizeof...(Comp) > 1), std::tuple<Comp &...>>
     get(const entity_type entity) ENTT_NOEXCEPT {
         assert(contains(entity));
         return std::tuple<Comp &...>{get<Comp>(entity)...};
@@ -851,7 +851,7 @@ public:
      * @return The components assigned to the entity.
      */
     template<typename... Comp>
-    std::enable_if_t<(sizeof...(Comp) > 1), std::tuple<const Comp &...>>
+    inline std::enable_if_t<(sizeof...(Comp) > 1), std::tuple<const Comp &...>>
     get(const entity_type entity) const ENTT_NOEXCEPT {
         assert(contains(entity));
         return std::tuple<const Comp &...>{get<Comp>(entity)...};
@@ -875,7 +875,7 @@ public:
      * @return The components assigned to the entity.
      */
     template<typename... Comp>
-    std::enable_if_t<(sizeof...(Comp) > 1), std::tuple<Comp &...>>
+    inline std::enable_if_t<(sizeof...(Comp) > 1), std::tuple<Comp &...>>
     get(const entity_type entity) ENTT_NOEXCEPT {
         assert(contains(entity));
         return std::tuple<Comp &...>{get<Comp>(entity)...};
