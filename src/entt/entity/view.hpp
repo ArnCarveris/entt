@@ -105,7 +105,7 @@ public:
 
     /*! @brief TODO */
     template<typename Extension, typename... Args> 
-    extension_type<Extension> extension(Args &&... args) noexcept {
+    extension_type<Extension> extension(Args &&... args) ENTT_NOEXCEPT {
         return extension_type<Extension>(this, std::forward<Args>(args)...);
     }
     /**
@@ -646,7 +646,7 @@ public:
 
     /*! @brief TODO */
     template<typename Extension, typename... Args>
-    extension_type<Extension> extension(Args &&... args) noexcept {
+    extension_type<Extension> extension(Args &&... args) ENTT_NOEXCEPT {
         return extension_type<Extension>(this, std::forward<Args>(args)...);
     }
     /**
@@ -1003,7 +1003,7 @@ public:
 
     /*! @brief TODO */
     template<typename Extension, typename... Args>
-    extension_type<Extension> extension(Args &&... args) noexcept {
+    extension_type<Extension> extension(Args &&... args) ENTT_NOEXCEPT {
         return extension_type<Extension>(this, std::forward<Args>(args)...);
     }
     /**
@@ -1348,7 +1348,7 @@ public:
 
     /*! @brief TODO */
     template<typename Extension, typename... Args>
-    extension_type<Extension> extension(Args &&... args) noexcept {
+    extension_type<Extension> extension(Args &&... args) ENTT_NOEXCEPT {
         return extension_type<Extension>(this, std::forward<Args>(args)...);
     }
     /**
