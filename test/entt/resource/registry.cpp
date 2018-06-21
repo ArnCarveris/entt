@@ -16,7 +16,7 @@ struct Resource
 {
     std::string id;
 
-    Resource(const ResourceRegistry::id_type& id) :
+    Resource(const ResourceRegistry::id_t& id) :
         id((const char*)id)
     { }
 };
@@ -24,7 +24,7 @@ struct ResourceA : Resource
 {
     int value;
 
-    ResourceA(const ResourceRegistry::id_type& id, int value) :
+    ResourceA(const ResourceRegistry::id_t& id, int value) :
         Resource(id),
         value(value)
     { }
@@ -34,7 +34,7 @@ struct ResourceB : Resource
 {
     float value;
 
-    ResourceB(const ResourceRegistry::id_type& id, float value) :
+    ResourceB(const ResourceRegistry::id_t& id, float value) :
         Resource(id),
         value(value)
     { }
@@ -43,7 +43,7 @@ struct ResourceB : Resource
 
 template<> class Loader<ResourceA> : public ResourceRegistry::LoaderBasis<ResourceA>{
 public:
-    std::shared_ptr<ResourceA> load(const ResourceRegistry::id_type& id)
+    std::shared_ptr<ResourceA> load(const ResourceRegistry::id_t& id)
     {
         return std::make_shared<ResourceA>(id, 123);
     };
@@ -51,9 +51,9 @@ public:
     {
         return true;
     }
-    ResourceRegistry::id_type identify(const ResourceA& entry)
+    ResourceRegistry::id_t identify(const ResourceA& entry)
     {
-        return ResourceRegistry::id_type{ entry.id.c_str() };
+        return ResourceRegistry::id_t{ entry.id.c_str() };
     }
    
     const char* name() final
@@ -64,7 +64,7 @@ public:
 
 template<> class Loader<ResourceB> : public ResourceRegistry::LoaderBasis<ResourceB> {
 public:
-    std::shared_ptr<ResourceB> load(const ResourceRegistry::id_type& id)
+    std::shared_ptr<ResourceB> load(const ResourceRegistry::id_t& id)
     {
         return std::make_shared<ResourceB>(id, 3.14f);
     };
@@ -72,9 +72,9 @@ public:
     {
         return true;
     }
-    ResourceRegistry::id_type identify(const ResourceB& entry)
+    ResourceRegistry::id_t identify(const ResourceB& entry)
     {
-        return ResourceRegistry::id_type{ entry.id.c_str()};
+        return ResourceRegistry::id_t{ entry.id.c_str()};
     }
 
     const char* name() final
@@ -87,8 +87,8 @@ public:
 TEST(ResourceRegistry, Functionalities) {
     ResourceRegistry registry;
 
-    const ResourceRegistry::id_type id_a{ "a" };
-    const ResourceRegistry::id_type id_b{ "b" };
+    const ResourceRegistry::id_t id_a{ "a" };
+    const ResourceRegistry::id_t id_b{ "b" };
 
 
     ASSERT_EQ(registry.deliver<ResourceA>(), registry.type<ResourceA>());
