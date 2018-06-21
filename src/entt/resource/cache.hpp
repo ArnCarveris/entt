@@ -94,12 +94,20 @@ public:
      */
     template<typename Loader, typename... Args>
     bool load(const resource_type& id, Args &&... args) {
+        static Loader loader{};
+
+        return load(&loader, id, std::forward<Args>(args)...);
+    } 
+
+    /*! @brief TODO */
+    template<typename Loader, typename... Args>
+    bool load(Loader* loader, const resource_type& id, Args &&... args) {
         static_assert(std::is_base_of<ResourceLoader<Loader, Resource>, Loader>::value, "!");
 
         bool loaded = true;
 
-        if(resources.find(id) == resources.cend()) {
-            std::shared_ptr<Resource> resource = Loader{}.get(std::forward<Args>(args)...);
+        if (resources.find(id) == resources.cend()) {
+            std::shared_ptr<Resource> resource = loader->get(std::forward<Args>(args)...);
             loaded = (static_cast<bool>(resource) ? (resources[id] = std::move(resource), loaded) : false);
         }
 
