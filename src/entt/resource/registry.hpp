@@ -143,7 +143,7 @@ namespace entt
 
         /*! @brief TODO */
         template<typename Resource>
-        constexpr type_id_t type() {
+        inline static type_id_t type() {
             return type_family::type<Resource>();
         }
     private:
