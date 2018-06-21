@@ -48,6 +48,11 @@ public:
     /*! @brief Default move assignment operator. @return This handle. */
     ResourceHandle & operator=(ResourceHandle &&) ENTT_NOEXCEPT = default;
 
+    /*! @brief TODO */
+    void reset() ENTT_NOEXCEPT {
+        resource.reset();
+    }
+
     /**
      * @brief Gets a reference to the managed resource.
      *
