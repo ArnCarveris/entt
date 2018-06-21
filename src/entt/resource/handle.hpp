@@ -37,6 +37,7 @@ class ResourceHandle final {
     {}
 
 public:
+    ResourceHandle() = default;
     /*! @brief Default copy constructor. */
     ResourceHandle(const ResourceHandle &) ENTT_NOEXCEPT = default;
     /*! @brief Default move constructor. */
