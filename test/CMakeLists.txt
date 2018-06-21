@@ -72,6 +72,7 @@ ADD_ENTT_TEST(scheduler entt/process/scheduler.cpp)
 # Test resource
 
 ADD_ENTT_TEST(resource entt/resource/resource.cpp)
+ADD_ENTT_TEST(resource_registry entt/resource/registry.cpp)
 
 # Test signal
 

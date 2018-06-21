@@ -17,6 +17,7 @@
 #include "resource/cache.hpp"
 #include "resource/handle.hpp"
 #include "resource/loader.hpp"
+#include "resource/registry.hpp"
 #include "signal/delegate.hpp"
 #include "signal/dispatcher.hpp"
 #include "signal/emitter.hpp"
