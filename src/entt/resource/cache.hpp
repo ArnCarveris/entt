@@ -174,6 +174,11 @@ public:
         return (resources.find(id) != resources.cend());
     }
 
+    /*! @brief TODO */
+    size_type count(const resource_type id) const ENTT_NOEXCEPT {
+        auto it = resources.find(id);
+        return it == resources.cend() ? 0 : it->second.use_count();
+    }
     /**
      * @brief Discards the resource that corresponds to a given identifier.
      *
