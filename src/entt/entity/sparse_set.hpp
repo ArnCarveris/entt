@@ -29,6 +29,16 @@ class SparseSet;
 
 
 /**
+ * @brief Sparse set extension.
+ *
+ * Primary template isn't defined on purpose. All the specializations give a
+ * private access of internal structures.
+ */
+template<typename...>
+class SparseSetExtension;
+
+
+/**
  * @brief Basic sparse set implementation.
  *
  * Sparse set or packed array or whatever is the name users give it.<br/>
@@ -59,7 +69,14 @@ template<typename Entity>
 class SparseSet<Entity> {
     using traits_type = entt_traits<Entity>;
 
+    /*! @brief TODO */
+    template<typename...> 
+    friend class SparseSetExtension;
+
     struct Iterator final {
+        template<typename...> 
+        friend class SparseSetExtension;
+
         using difference_type = std::size_t;
         using value_type = Entity;
         using pointer = const value_type *;
@@ -108,6 +125,9 @@ class SparseSet<Entity> {
     static constexpr auto pending = ~typename traits_type::entity_type{};
 
 public:
+    /*! @brief TODO */
+    template <typename Extension>
+    using extension_type = SparseSetExtension<Extension, Entity>;
     /*! @brief Underlying entity identifier. */
     using entity_type = Entity;
     /*! @brief Entity dependent position type. */
@@ -135,6 +155,11 @@ public:
     /*! @brief Default move assignment operator. @return This sparse set. */
     SparseSet & operator=(SparseSet &&) = default;
 
+    /*! @brief TODO */
+    template<typename Extension, typename... Args> 
+    SparseSet<Entity>::extension_type<Extension> extension(Args &&... args) noexcept {
+        return SparseSet<Entity>::extension_type<Extension>(this, std::forward<Args>(args)...);
+    }
     /**
      * @brief Increases the capacity of a sparse set.
      *
@@ -501,8 +526,15 @@ template<typename Entity, typename Type>
 class SparseSet<Entity, Type>: public SparseSet<Entity> {
     using underlying_type = SparseSet<Entity>;
 
+    /*! @brief TODO */
+    template<typename...> 
+    friend class SparseSetExtension;
+
     template<bool Const>
     struct Iterator final {
+        template<typename...> 
+        friend class SparseSetExtension;
+
         using difference_type = std::size_t;
         using value_type = std::conditional_t<Const, const Type, Type>;
         using pointer = value_type *;
@@ -553,6 +585,9 @@ class SparseSet<Entity, Type>: public SparseSet<Entity> {
     };
 
 public:
+    /*! @brief TODO */
+    template <typename Extension> 
+    using extension_type = SparseSetExtension<Extension, Entity, Type>;
     /*! @brief Type of the objects associated to the entities. */
     using object_type = Type;
     /*! @brief Underlying entity identifier. */
@@ -579,6 +614,11 @@ public:
     /*! @brief Default move assignment operator. @return This sparse set. */
     SparseSet & operator=(SparseSet &&) = default;
 
+    /*! @brief TODO */
+    template<typename Extension, typename... Args> 
+    SparseSet<Entity, Type>::extension_type<Extension> extension(Args &&... args) noexcept {
+        return SparseSet<Entity, Type>::extension_type<Extension>(this, std::forward<Args>(args)...);
+    }
     /**
      * @brief Increases the capacity of a sparse set.
      *

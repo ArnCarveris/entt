@@ -25,6 +25,9 @@
 namespace entt {
 
 
+/*! @brief TODO */
+template<typename...>
+class RegistryExtension;
 /**
  * @brief Fast and reliable entity-component system.
  *
@@ -37,6 +40,10 @@ namespace entt {
  */
 template<typename Entity>
 class Registry {
+    /*! @brief TODO */
+    template<typename...> 
+    friend class RegistryExtension;
+    
     using tag_family = Family<struct InternalRegistryTagFamily>;
     using component_family = Family<struct InternalRegistryComponentFamily>;
     using handler_family = Family<struct InternalRegistryHandlerFamily>;
@@ -116,6 +123,9 @@ class Registry {
     }
 
 public:
+    /*! @brief TODO */
+    template <typename Extension>
+    using extension_type = RegistryExtension<Extension, Entity>;
     /*! @brief Underlying entity identifier. */
     using entity_type = typename traits_type::entity_type;
     /*! @brief Underlying version type. */
@@ -142,6 +152,11 @@ public:
     /*! @brief Default move assignment operator. @return This registry. */
     Registry & operator=(Registry &&) = default;
 
+    /*! @brief TODO */
+    template<typename Extension, typename... Args>
+    extension_type<Extension> extension(Args &&... args) ENTT_NOEXCEPT {
+        return extension_type<Extension>(this, std::forward<Args>(args)...);
+    }
     /**
      * @brief Returns the numeric identifier of a type of tag at runtime.
      *
