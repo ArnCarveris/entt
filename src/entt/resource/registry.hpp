@@ -15,9 +15,14 @@ namespace entt
     class ResourceRegistry
     {
         static_assert(!std::is_same<LoaderInterface, void>::value, "!");
+
+        using type_family = Family<ResourceRegistry<LoaderImplementation, LoaderInterface>, struct InternalResourceType>;
     public:
         /*! @brief TODO */
-        using id_type = HashedString;
+        using id_t = HashedString;
+
+        /*! @brief TODO */
+        using type_id_t = typename type_family::family_type;
 
         /*! @brief TODO */
         template<typename Resource>
@@ -42,7 +47,7 @@ namespace entt
             friend class ResourceRegistry<LoaderImplementation, LoaderInterface>;
 
             /*! @brief TODO */
-            std::shared_ptr<Resource> get(const id_type& id) {
+            std::shared_ptr<Resource> get(const id_t& id) {
                 return static_cast<Loader*>(this)->load(id);
             }
             /*! @brief TODO */
@@ -50,15 +55,13 @@ namespace entt
                 return static_cast<Loader*>(this)->unload(resource);
             }
             /*! @brief TODO */
-            id_type id(Resource& resource) {
+            id_t id(Resource& resource) {
                 return static_cast<Loader*>(this)->identify(resource);
             }
         protected:
             cache_type<Resource>* cache;
         };
     private:
-        using type_family = Family<ResourceRegistry<LoaderImplementation, LoaderInterface>, struct InternalResourceType>;
-
         using cache_container_type = std::vector<std::shared_ptr<void>>;
         using loader_container_type = std::vector<std::unique_ptr<LoaderInterface>>;
     public:
@@ -90,7 +93,7 @@ namespace entt
 
         /*! @brief TODO */
         template<typename Resource>
-        handle_type<Resource> obtain(const HashedString& id) ENTT_NOEXCEPT {
+        handle_type<Resource> obtain(const id_t& id) ENTT_NOEXCEPT {
             auto* cache_ptr = cache<Resource>();
             auto* loader_ptr = loader<Resource>();
 
@@ -108,7 +111,7 @@ namespace entt
                 auto* cache_ptr = cache<Resource>();
                 auto& resource_ref = const_cast<Resource&>(handle.get());
 
-                const id_type id{ loader_ptr->id(resource_ref) };
+                const id_t id{ loader_ptr->id(resource_ref) };
 
                 released = cache_ptr->count(id) <= 2 && loader_ptr->reset(resource_ref);
 
@@ -140,7 +143,7 @@ namespace entt
 
         /*! @brief TODO */
         template<typename Resource>
-        constexpr auto type() {
+        constexpr type_id_t type() {
             return type_family::type<Resource>();
         }
     private:
