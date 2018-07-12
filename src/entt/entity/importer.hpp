@@ -48,6 +48,8 @@ namespace entt {
             }
             catch (const std::exception& e)
             {
+                (void)e;
+
                 return false;
             }
         }
