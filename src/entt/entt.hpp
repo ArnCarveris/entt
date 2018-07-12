@@ -8,6 +8,8 @@
 #include "entity/prototype.hpp"
 #include "entity/registry.hpp"
 #include "entity/snapshot.hpp"
+#include "entity/exporter.hpp"
+#include "entity/importer.hpp"
 #include "entity/sparse_set.hpp"
 #include "entity/utility.hpp"
 #include "entity/view.hpp"

@@ -43,6 +43,19 @@ if(BUILD_SNAPSHOT)
     target_include_directories(cereal PRIVATE ${CEREAL_SRC_DIR})
 endif()
 
+# Test exporter-importer
+
+if(BUILD_EXPORTER_IMPORTER)
+    set(CEREAL_DEPS_DIR ${entt_SOURCE_DIR}/deps/cereal)
+    configure_file(${entt_SOURCE_DIR}/cmake/in/cereal.in ${CEREAL_DEPS_DIR}/CMakeLists.txt)
+    execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" . WORKING_DIRECTORY ${CEREAL_DEPS_DIR})
+    execute_process(COMMAND ${CMAKE_COMMAND} --build . WORKING_DIRECTORY ${CEREAL_DEPS_DIR})
+    set(CEREAL_SRC_DIR ${CEREAL_DEPS_DIR}/src/include)
+
+    ADD_ENTT_TEST(exporter-importer exporter-importer/exporter-importer.cpp)
+    target_include_directories(exporter-importer PRIVATE ${CEREAL_SRC_DIR})
+endif()
+
 # Test core
 
 ADD_ENTT_TEST(algorithm entt/core/algorithm.cpp)
