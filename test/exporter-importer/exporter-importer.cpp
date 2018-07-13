@@ -38,7 +38,7 @@ void serialize(Archive &archive, Relationship &relationship) {
 
 
 
-TEST(ExporterImporter, Full) {
+TEST(ExporterImporter, Basic) {
     std::stringstream storage;
 
 
