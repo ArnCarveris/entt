@@ -22,6 +22,8 @@ namespace entt {
     template<typename>
     class Registry;
 
+    template<typename Entity>
+    class Prototype;
 
     template<typename Entity, typename KeyType, template<class> class KeyValuePair>
     class Exporter final {
@@ -37,16 +39,24 @@ namespace entt {
         }
 
         template<typename Component, typename Archive>
-        void component(Archive &archive, Entity entity, KeyType key) const {
+        void component(Archive &archive, const Entity& entity, KeyType key) const {
             if (registry.template has<Component>(entity)) {
                 archive(make_kvp(key, registry.template get<Component>(entity)));
             }
         }
 
-        template<typename... Component, typename Archive, std::size_t... Indexes>
-        void components(Archive &archive, Entity entity, const std::array<KeyType, sizeof...(Component)>& keys, std::index_sequence<Indexes...>) const {
+        template<typename Component, typename Archive>
+        void component(Archive &archive, const Prototype<Entity>& prototype, KeyType key) const {
+            if (prototype.has<Component>()) {
+                archive(make_kvp(key, prototype.get<Component>()));
+            }
+        }
+
+
+        template<typename... Component, typename Archive, typename Source, std::size_t... Indexes>
+        void components(Archive &archive, const Source& source, const std::array<KeyType, sizeof...(Component)>& keys, std::index_sequence<Indexes...>) const {
             using accumulator_type = int[];
-            accumulator_type accumulator = { (component<Component>(archive, entity, keys[Indexes]), 0)... };
+            accumulator_type accumulator = { (component<Component>(archive, source, keys[Indexes]), 0)... };
             (void)accumulator;
         }
         
@@ -76,9 +86,9 @@ namespace entt {
         /*! @brief Default move assignment operator. @return This exporter. */
         Exporter & operator=(Exporter &&) = default;
 
-        template<typename... Component, typename Archive>
-        const Exporter & component(Archive &archive, Entity entity, const std::array<KeyType, sizeof...(Component)>& keys) const {
-            components<Component...>(archive, entity, keys, std::make_index_sequence<sizeof...(Component)>{});
+        template<typename... Component, typename Archive, typename Source>
+        const Exporter & component(Archive &archive, const Source& source, const std::array<KeyType, sizeof...(Component)>& keys) const {
+            components<Component...>(archive, source, keys, std::make_index_sequence<sizeof...(Component)>{});
             return *this;
         }
 
