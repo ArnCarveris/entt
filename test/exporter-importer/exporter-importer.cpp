@@ -66,7 +66,7 @@ TEST(ExporterImporter, Full) {
 
         dst
          .importer<const char*, cereal::NameValuePair>()
-         .component<Position, Timer, Relationship>(input, ed, {"position", "timer", "relationship");
+         .component<Position, Timer, Relationship>(input, ed, {"position", "timer", "relationship"});
 
         ASSERT_EQ(dst.has<Position>(ed), src.has<Position>(es));
         ASSERT_EQ(dst.has<Timer>(ed), src.has<Timer>(es));
