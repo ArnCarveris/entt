@@ -3,6 +3,7 @@
 #include <vector>
 #include <cereal/archives/json.hpp>
 #include <entt/entity/registry.hpp>
+#include <entt/entity/prototype.hpp>
 #include <entt/core/hashed_string.hpp>
 
 struct Position {
@@ -72,4 +73,45 @@ TEST(ExporterImporter, Basic) {
         ASSERT_EQ(dst.has<Timer>(ed), src.has<Timer>(es));
         ASSERT_EQ(dst.has<Relationship>(ed), src.has<Relationship>(es));
     }
+}
+
+
+TEST(ExporterImporter, Prototype) {
+    std::stringstream storage;
+
+    entt::DefaultRegistry registry;
+
+    entt::DefaultPrototype src{registry};
+    entt::DefaultPrototype dst{registry};
+
+    src.set<Position>(.8f, .0f);
+    src.set<Timer>(1000, 100);
+
+    {
+        cereal::JSONOutputArchive output{ storage };
+
+        registry
+            .exporter<const char*, cereal::NameValuePair>()
+            .component<Position, Timer, Relationship>(output, src, { "position", "timer", "relationship" });
+    }
+    {
+
+        cereal::JSONInputArchive input{ storage };
+
+        registry
+            .importer<const char*, cereal::NameValuePair>()
+            .component<Position, Timer, Relationship>(input, dst, { "position", "timer", "relationship" });
+
+        ASSERT_EQ(dst.has<Position>(), src.has<Position>());
+        ASSERT_EQ(dst.has<Timer>(), src.has<Timer>());
+        ASSERT_EQ(dst.has<Relationship>(), src.has<Relationship>());
+    }
+    storage.clear();
+
+    auto e1 = src();
+    auto e2 = dst();
+
+    ASSERT_EQ(registry.has<Position>(e1), registry.has<Position>(e2));
+    ASSERT_EQ(registry.has<Timer>(e1), registry.has<Timer>(e2));
+    ASSERT_EQ(registry.has<Relationship>(e1), registry.has<Relationship>(e2));
 }
