@@ -22,6 +22,8 @@ namespace entt {
     template<typename>
     class Registry;
 
+    template<typename Entity>
+    class Prototype;
 
     template<typename Entity, typename KeyType, template<class> class KeyValuePair>
     class Importer final {
@@ -32,8 +34,18 @@ namespace entt {
             : registry{ registry }
         {}
 
-        template<typename Type, typename Archive, typename... Args>
-        bool assign(Archive &archive, Entity entity, KeyType key, Args... args) const {
+        template<typename Type, typename... Args>
+        void assign(Args... args, Entity& entity, const Type& value) const {
+            registry.template assign<Type>(args..., entity, value);
+        }
+
+        template<typename Type, typename... Args>
+        void assign(Args... args, Prototype<Entity>& prototype, const Type& value) const {
+            prototype.set<Type>(args..., value);
+        }
+
+        template<typename Type, typename Archive, typename Destination, typename... Args>
+        bool try_load(Archive &archive, Destination& destination, KeyType key, Args... args) const {
             try
             {
                 Type tmp{};
@@ -42,7 +54,7 @@ namespace entt {
 
                 archive(instance);
 
-                registry.template assign<Type>(args..., entity, static_cast<const Type &>(instance.value));
+                assign<Type>(args..., destination, static_cast<const Type &>(instance.value));
 
                 return true;
             }
@@ -54,17 +66,17 @@ namespace entt {
             }
         }
 
-        template<typename... Component, typename Archive, std::size_t... Indexes>
-        void components(Archive &archive, Entity entity, const std::array<KeyType, sizeof...(Component)>& keys, std::index_sequence<Indexes...>) const {
+        template<typename... Component, typename Archive, typename Destination, std::size_t... Indexes>
+        void components(Archive &archive, Destination& destination, const std::array<KeyType, sizeof...(Component)>& keys, std::index_sequence<Indexes...>) const {
             using accumulator_type = int[];
-            accumulator_type accumulator = { (assign<Component>(archive, entity, keys[Indexes]), 0)... };
+            accumulator_type accumulator = { (try_load<Component>(archive, destination, keys[Indexes]), 0)... };
             (void)accumulator;
         }
 
         template<typename... Tag, typename Archive, std::size_t... Indexes>
-        void tags(Archive &archive, Entity entity, const std::array<KeyType, sizeof...(Tag)>& keys, std::index_sequence<Indexes...>) const {
+        void tags(Archive &archive, Entity& entity, const std::array<KeyType, sizeof...(Tag)>& keys, std::index_sequence<Indexes...>) const {
             using accumulator_type = int[];
-            accumulator_type accumulator = { (assign<Tag>(archive, entity, keys[Indexes], tag_t{}), 0)... };
+            accumulator_type accumulator = { (try_load<Tag>(archive, entity, keys[Indexes], tag_t{}), 0)... };
             (void)accumulator;
         }
     public:
@@ -79,14 +91,14 @@ namespace entt {
         /*! @brief Default move assignment operator. @return This importer. */
         Importer & operator=(Importer &&) = default;
 
-        template<typename... Component, typename Archive>
-        const Importer & component(Archive &archive, Entity entity, const std::array<KeyType, sizeof...(Component)>& keys) const {
-            components<Component...>(archive, entity, keys, std::make_index_sequence<sizeof...(Component)>{});
+        template<typename... Component, typename Archive, typename Destination>
+        const Importer & component(Archive &archive, Destination& destination, const std::array<KeyType, sizeof...(Component)>& keys) const {
+            components<Component...>(archive, destination, keys, std::make_index_sequence<sizeof...(Component)>{});
             return *this;
         }
 
         template<typename... Tag, typename Archive>
-        const Importer & tag(Archive &archive, Entity entity, const std::array<KeyType, sizeof...(Tag)>& keys) const {
+        const Importer & tag(Archive &archive, Entity& entity, const std::array<KeyType, sizeof...(Tag)>& keys) const {
             tags<Tag...>(archive, entity, keys, std::make_index_sequence<sizeof...(Tag)>{});
             return *this;
         }
