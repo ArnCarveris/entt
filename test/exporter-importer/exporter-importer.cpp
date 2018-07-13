@@ -58,21 +58,15 @@ TEST(ExporterImporter, Full) {
         cereal::JSONOutputArchive output{ storage };
 
         src
-            .exporter<const char*, cereal::NameValuePair>()
-            .component<Position, Timer, Relationship>
-            (
-                output, es, { "position", "timer", "relationship" }
-        );
+         .exporter<const char*, cereal::NameValuePair>()
+         .component<Position, Timer, Relationship>(output, es, {"position", "timer", "relationship"});
     }
     {
         cereal::JSONInputArchive input{ storage };
 
         dst
-            .importer<const char*, cereal::NameValuePair>()
-            .component<Position, Timer, Relationship>
-            (
-                input, ed, { "position", "timer", "relationship" }
-        );
+         .importer<const char*, cereal::NameValuePair>()
+         .component<Position, Timer, Relationship>(input, ed, {"position", "timer", "relationship");
 
         ASSERT_EQ(dst.has<Position>(ed), src.has<Position>(es));
         ASSERT_EQ(dst.has<Timer>(ed), src.has<Timer>(es));
