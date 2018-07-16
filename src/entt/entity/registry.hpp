@@ -20,6 +20,8 @@
 #include "sparse_set.hpp"
 #include "utility.hpp"
 #include "view.hpp"
+#include "exporter.hpp"
+#include "importer.hpp"
 
 
 namespace entt {
@@ -1429,6 +1431,16 @@ public:
     RawView<Entity, Component> view(raw_t) {
         assure<Component>();
         return RawView<Entity, Component>{pool<Component>()};
+    }
+
+    template<typename KeyType, template<class> class KeyValuePair>
+    Exporter<Entity, KeyType, KeyValuePair> exporter() const {
+        return { *this };
+    }
+
+    template<typename KeyType, template<class> class KeyValuePair>
+    Importer<Entity, KeyType, KeyValuePair> importer() {
+        return { *this };
     }
 
     /**
