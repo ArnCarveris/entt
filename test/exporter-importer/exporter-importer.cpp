@@ -37,7 +37,15 @@ void serialize(Archive &archive, Relationship &relationship) {
     archive(cereal::make_nvp("parent", relationship.parent));
 }
 
+template<typename Archive>
+bool has_component_key(Archive& archive, const char* key)
+{
+    const char* current_key = archive.getNodeName();
 
+    return current_key != nullptr && !strcmp(current_key, key);
+}
+
+const std::array<const char*, 3> component_keys = { "position", "timer", "relationship" };
 
 TEST(ExporterImporter, Basic) {
     std::stringstream storage;
@@ -59,15 +67,15 @@ TEST(ExporterImporter, Basic) {
         cereal::JSONOutputArchive output{ storage };
 
         src
-         .exporter<const char*, cereal::NameValuePair>()
-         .component<Position, Timer, Relationship>(output, es, {"position", "timer", "relationship"});
+            .exporter<const char*, cereal::NameValuePair>()
+            .component<Position, Timer, Relationship>(output, es, component_keys);
     }
     {
         cereal::JSONInputArchive input{ storage };
 
         dst
-         .importer<const char*, cereal::NameValuePair>()
-         .component<Position, Timer, Relationship>(input, ed, {"position", "timer", "relationship"});
+            .importer<const char*, cereal::NameValuePair>()
+            .component<Position, Timer, Relationship>(input, has_component_key<cereal::JSONInputArchive>, ed, component_keys);
 
         ASSERT_EQ(dst.has<Position>(ed), src.has<Position>(es));
         ASSERT_EQ(dst.has<Timer>(ed), src.has<Timer>(es));
@@ -92,7 +100,7 @@ TEST(ExporterImporter, Prototype) {
 
         registry
             .exporter<const char*, cereal::NameValuePair>()
-            .component<Position, Timer, Relationship>(output, src, { "position", "timer", "relationship" });
+            .component<Position, Timer, Relationship>(output, src, component_keys);
     }
     {
 
@@ -100,7 +108,7 @@ TEST(ExporterImporter, Prototype) {
 
         registry
             .importer<const char*, cereal::NameValuePair>()
-            .component<Position, Timer, Relationship>(input, dst, { "position", "timer", "relationship" });
+            .component<Position, Timer, Relationship>(input, has_component_key<cereal::JSONInputArchive>, dst, component_keys);
 
         ASSERT_EQ(dst.has<Position>(), src.has<Position>());
         ASSERT_EQ(dst.has<Timer>(), src.has<Timer>());
