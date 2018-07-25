@@ -44,13 +44,12 @@ namespace entt {
             prototype.set<Type>(args..., value);
         }
 
-        template<typename Type, typename Archive, typename Destination, typename... Args>
-        bool try_load(Archive &archive, Destination& destination, KeyType key, Args... args) const {
-            try
-            {
+        template<typename Type, typename Archive, typename Predicate, typename Destination, typename... Args>
+        bool load(Archive &archive, const Predicate& predicate, Destination& destination, KeyType key, Args... args) const {
+            if (predicate(archive, key)) {
                 Type tmp{};
-                
-                KeyValuePair<Type> instance{key,  std::move(tmp) };
+
+                KeyValuePair<Type> instance{ key,  std::move(tmp) };
 
                 archive(instance);
 
@@ -58,25 +57,21 @@ namespace entt {
 
                 return true;
             }
-            catch (const std::exception& e)
-            {
-                (void)e;
 
-                return false;
-            }
+            return false;
         }
 
-        template<typename... Component, typename Archive, typename Destination, std::size_t... Indexes>
-        void components(Archive &archive, Destination& destination, const std::array<KeyType, sizeof...(Component)>& keys, std::index_sequence<Indexes...>) const {
+        template<typename... Component, typename Archive, typename Predicate, typename Destination, std::size_t... Indexes>
+        void components(Archive &archive, const Predicate& predicate, Destination& destination, const std::array<KeyType, sizeof...(Component)>& keys, std::index_sequence<Indexes...>) const {
             using accumulator_type = int[];
-            accumulator_type accumulator = { (try_load<Component>(archive, destination, keys[Indexes]), 0)... };
+            accumulator_type accumulator = { (load<Component>(archive, predicate, destination, keys[Indexes]), 0)... };
             (void)accumulator;
         }
 
-        template<typename... Tag, typename Archive, std::size_t... Indexes>
-        void tags(Archive &archive, Entity& entity, const std::array<KeyType, sizeof...(Tag)>& keys, std::index_sequence<Indexes...>) const {
+        template<typename... Tag, typename Archive, typename Predicate, std::size_t... Indexes>
+        void tags(Archive &archive, const Predicate& predicate, Entity& entity, const std::array<KeyType, sizeof...(Tag)>& keys, std::index_sequence<Indexes...>) const {
             using accumulator_type = int[];
-            accumulator_type accumulator = { (try_load<Tag>(archive, entity, keys[Indexes], tag_t{}), 0)... };
+            accumulator_type accumulator = { (load<Tag>(archive, predicate, entity, keys[Indexes], tag_t{}), 0)... };
             (void)accumulator;
         }
     public:
@@ -91,15 +86,15 @@ namespace entt {
         /*! @brief Default move assignment operator. @return This importer. */
         Importer & operator=(Importer &&) = default;
 
-        template<typename... Component, typename Archive, typename Destination>
-        const Importer & component(Archive &archive, Destination& destination, const std::array<KeyType, sizeof...(Component)>& keys) const {
-            components<Component...>(archive, destination, keys, std::make_index_sequence<sizeof...(Component)>{});
+        template<typename... Component, typename Archive, typename Predicate, typename Destination>
+        const Importer & component(Archive &archive, const Predicate& predicate, Destination& destination, const std::array<KeyType, sizeof...(Component)>& keys) const {
+            components<Component...>(archive, predicate, destination, keys, std::make_index_sequence<sizeof...(Component)>{});
             return *this;
         }
 
-        template<typename... Tag, typename Archive>
-        const Importer & tag(Archive &archive, Entity& entity, const std::array<KeyType, sizeof...(Tag)>& keys) const {
-            tags<Tag...>(archive, entity, keys, std::make_index_sequence<sizeof...(Tag)>{});
+        template<typename... Tag, typename Archive, typename Predicate>
+        const Importer & tag(Archive &archive, const Predicate& predicate, Entity& entity, const std::array<KeyType, sizeof...(Tag)>& keys) const {
+            tags<Tag...>(archive, predicate, entity, keys, std::make_index_sequence<sizeof...(Tag)>{});
             return *this;
         }
     private:
