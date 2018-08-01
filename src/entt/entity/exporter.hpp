@@ -61,16 +61,16 @@ namespace entt {
         }
         
         template<typename Tag, typename Archive>
-        void tag(Archive &archive, KeyType key) const {
+        void tag(Archive &archive, const Entity& entity, KeyType key) const {
 
-            if (registry.template has<Tag>()) {
+            if (registry.template has<Tag>() && registry.template attachee<Tag>() == entity) {
                 archive(make_kvp(key, registry.template get<Tag>()));
             }
         }
         template<typename... Tag, typename Archive, std::size_t... Indexes>
-        void tags(Archive &archive, const std::array<KeyType, sizeof...(Tag)>& keys, std::index_sequence<Indexes...>) const {
+        void tags(Archive &archive, const Entity& entity, const std::array<KeyType, sizeof...(Tag)>& keys, std::index_sequence<Indexes...>) const {
             using accumulator_type = int[];
-            accumulator_type accumulator = { (tag<Tag>(archive, keys[Indexes]), 0)... };
+            accumulator_type accumulator = { (tag<Tag>(archive, entity, keys[Indexes]), 0)... };
             (void)accumulator;
         }
     public:
@@ -93,8 +93,8 @@ namespace entt {
         }
 
         template<typename... Tag, typename Archive>
-        const Exporter & tag(Archive &archive, const std::array<KeyType, sizeof...(Tag)>& keys) const {
-            tags<Tag...>(archive, keys, std::make_index_sequence<sizeof...(Tag)>{});
+        const Exporter & tag(Archive &archive, const Entity& entity, const std::array<KeyType, sizeof...(Tag)>& keys) const {
+            tags<Tag...>(archive, entity, keys, std::make_index_sequence<sizeof...(Tag)>{});
             return *this;
         }
     private:
