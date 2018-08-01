@@ -35,12 +35,12 @@ namespace entt {
         {}
 
         template<typename Type, typename... Args>
-        void assign(Args... args, Entity& entity, const Type& value) const {
+        void assign(Entity& entity, const Type& value, Args... args) const {
             registry.template assign<Type>(args..., entity, value);
         }
 
         template<typename Type, typename... Args>
-        void assign(Args... args, Prototype<Entity>& prototype, const Type& value) const {
+        void assign(Prototype<Entity>& prototype, const Type& value, Args... args) const {
             prototype.set<Type>(args..., value);
         }
 
@@ -53,7 +53,7 @@ namespace entt {
 
                 archive(instance);
 
-                assign<Type>(args..., destination, static_cast<const Type &>(instance.value));
+                assign<Type>(destination, static_cast<const Type &>(instance.value), args...);
 
                 return true;
             }
