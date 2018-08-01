@@ -35,13 +35,13 @@ namespace entt {
         {}
 
         template<typename Type, typename... Args>
-        void assign(Entity& entity, const Type& value, Args... args) const {
-            registry.template assign<Type>(args..., entity, value);
+        void assign(Entity& entity, Type&& value, Args... args) const {
+            registry.template assign<Type>(args..., entity, std::move(value));
         }
 
         template<typename Type, typename... Args>
-        void assign(Prototype<Entity>& prototype, const Type& value, Args... args) const {
-            prototype.set<Type>(args..., value);
+        void assign(Prototype<Entity>& prototype, Type&& value, Args... args) const {
+            prototype.set<Type>(args..., std::move(value));
         }
 
         template<typename Type, typename Archive, typename Predicate, typename Destination, typename... Args>
@@ -53,7 +53,7 @@ namespace entt {
 
                 archive(instance);
 
-                assign<Type>(destination, static_cast<const Type &>(instance.value), args...);
+                assign<Type>(destination, std::move(instance.value), args...);
 
                 return true;
             }
