@@ -1,6 +1,7 @@
 #ifndef ENTT_CORE_PROPERTY_HPP
 #define ENTT_CORE_PROPERTY_HPP
 
+
 namespace entt {
 
     template<typename, typename, char...>
@@ -9,7 +10,8 @@ namespace entt {
     template<typename Registry>
     class PropertyRegistry {
 
-        friend Property;
+        template<typename, typename, char...>
+        friend class Property;
 
         template<typename Type>
         static bool setup(const char* name) {
@@ -30,21 +32,25 @@ namespace entt {
         Value value{};
 
         /*! @brief Named property type setup for registration */
-        static void setup() {
-            static_assert(std::is_base_of<PropertyRegistry<Registry>, Registry>::value, "!");
+        struct auto_setup_t
+        {
+            auto_setup_t()
+            {
+                static_assert(std::is_base_of<PropertyRegistry<Registry>, Registry>::value, "!");
 
-            static auto _{ PropertyRegistry<Registry>::setup<Property>(&buff[0]) }; (void)_;
-        }
+                static auto _{ PropertyRegistry<Registry>::setup<Property>(&buff[0]) }; (void)_;
+            }
+        };
     public:
+        using auto_register_type = auto_setup_t;
         using registry_type = Registry;
         using value_type = Value;
 
         template <typename... Args>
-        Property(Args &&... args) : value{ std::forward<Args>(args)... } { setup(); }
+        Property(Args &&... args) : value{ std::forward<Args>(args)... } { auto_setup_t{}; }
 
         inline operator Value &() { return value; }
         inline operator const Value &() const { return value; }
     };
 }
-
 #endif // ENTT_CORE_PROPERTY_HPP
