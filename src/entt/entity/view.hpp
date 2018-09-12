@@ -1233,6 +1233,10 @@ public:
         });
     }
 
+    /*! @brief TODO */
+    inline const_iterator_type find(Entity entity) const ENTT_NOEXCEPT {
+        return pool.view_type::find(entity);
+    }
 private:
     pool_type &pool;
 };
