@@ -420,6 +420,10 @@ public:
         view.respect(std::get<pool_type<Comp> &>(pools));
     }
 
+    /*! @brief TODO */
+    inline const_iterator_type find(Entity entity) const ENTT_NOEXCEPT {
+        return view.find(entity);
+    }
 private:
     view_type &view;
     const pattern_type pools;
@@ -928,6 +932,14 @@ public:
         });
     }
 
+
+    /*! @brief TODO */
+    const_iterator_type find(Entity entity) const ENTT_NOEXCEPT {
+        const auto *view = candidate();
+        return const_iterator_type{ unchecked(view), extent(), contains(entity) ? underlying_iterator_type{view->data(), view->get(entity) + 1} : view->cend(), view->cend() };
+    }
+
+
 private:
     const pattern_type pools;
 };
@@ -1273,6 +1285,10 @@ public:
         });
     }
 
+    /*! @brief TODO */
+    inline const_iterator_type find(Entity entity) const ENTT_NOEXCEPT {
+        return pool.view_type::find(entity);
+    }
 private:
     pool_type &pool;
 };
@@ -1556,6 +1572,11 @@ public:
     template<typename Func>
     void each(Func func) {
         std::for_each(pool.begin(), pool.end(), func);
+    }
+
+    /*! @brief TODO */
+    inline const_iterator_type find(Entity entity) const ENTT_NOEXCEPT {
+        return pool.has(entity) ? const_iterator_type{ pool, pool.get(entity) + 1 } : cend();
     }
 
 private:
