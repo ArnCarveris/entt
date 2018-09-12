@@ -900,6 +900,14 @@ public:
         });
     }
 
+
+    /*! @brief TODO */
+    const_iterator_type find(Entity entity) const ENTT_NOEXCEPT {
+        const auto *view = candidate();
+        return const_iterator_type{ unchecked(view), extent(), contains(entity) ? underlying_iterator_type{view->data(), view->get(entity) + 1} : view->cend(), view->cend() };
+    }
+
+
 private:
     const pattern_type pools;
 };
