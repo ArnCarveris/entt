@@ -469,6 +469,12 @@ public:
         direct.clear();
     }
 
+    /*! @brief TODO */
+    inline const_iterator_type find(Entity entity) const ENTT_NOEXCEPT {
+        return has(entity) ? const_iterator_type{ data(), get(entity) + 1} : cend();
+    }
+
+
 private:
     std::vector<pos_type> reverse;
     std::vector<entity_type> direct;
