@@ -403,6 +403,10 @@ public:
         view.respect(std::get<pool_type<Comp> &>(pools));
     }
 
+    /*! @brief TODO */
+    inline const_iterator_type find(Entity entity) const ENTT_NOEXCEPT {
+        return view.find(entity);
+    }
 private:
     view_type &view;
     const pattern_type pools;
