@@ -1518,6 +1518,11 @@ public:
         std::for_each(pool.begin(), pool.end(), func);
     }
 
+    /*! @brief TODO */
+    inline const_iterator_type find(Entity entity) const ENTT_NOEXCEPT {
+        return pool.has(entity) ? const_iterator_type{ pool, pool.get(entity) + 1 } : cend();
+    }
+
 private:
     pool_type &pool;
 };
